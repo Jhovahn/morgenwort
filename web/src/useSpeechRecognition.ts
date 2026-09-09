@@ -1,0 +1,45 @@
+import { useCallback, useRef, useState } from "react";
+
+export type RecognitionState = "idle" | "listening" | "done" | "error";
+
+export function useSpeechRecognition() {
+  const [state, setState] = useState<RecognitionState>("idle");
+  const [transcript, setTranscript] = useState("");
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+
+  const SpeechRecognitionCtor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+  const supported = Boolean(SpeechRecognitionCtor);
+
+  const start = useCallback(() => {
+    if (!SpeechRecognitionCtor) return;
+
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = "de-DE";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+      const heard = event.results[0]?.[0]?.transcript ?? "";
+      setTranscript(heard);
+      setState("done");
+    };
+    recognition.onerror = () => setState("error");
+    recognition.onend = () => setState((current) => (current === "listening" ? "done" : current));
+
+    recognitionRef.current = recognition;
+    setTranscript("");
+    setState("listening");
+    recognition.start();
+  }, [SpeechRecognitionCtor]);
+
+  const stop = useCallback(() => {
+    recognitionRef.current?.stop();
+  }, []);
+
+  const reset = useCallback(() => {
+    setTranscript("");
+    setState("idle");
+  }, []);
+
+  return { supported, state, transcript, start, stop, reset, setTranscript };
+}

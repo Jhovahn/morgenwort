@@ -1,0 +1,77 @@
+import { VOCAB, type VocabItem } from "./content.js";
+import { addDays, intervalDaysForStrength, isDue, nextStrength } from "./srs.js";
+import { scoreAttempt, type ScoredAttempt } from "./scoring.js";
+
+interface TrackedItem extends VocabItem {
+  dueAt: Date;
+}
+
+function seedItems(now: Date): TrackedItem[] {
+  return VOCAB.map((item) => {
+    const introducedAt = addDays(now, -item.introducedDaysAgo);
+    return { ...item, dueAt: addDays(introducedAt, intervalDaysForStrength(item.strength)) };
+  });
+}
+
+// Single in-memory demo session — deliberately not per-user or persistent.
+// A real product would key this store by authenticated user id and back
+// it with a database; out of scope for this take-home (see README).
+const items: TrackedItem[] = seedItems(new Date());
+
+export interface SessionView {
+  newWord: Pick<TrackedItem, "id" | "word" | "sentenceDe" | "sentenceEn" | "strength">;
+  reviewQueue: Pick<TrackedItem, "id" | "word" | "sentenceDe" | "sentenceEn" | "strength" | "dueAt">[];
+  upcomingCount: number;
+}
+
+export function getSession(now = new Date()): SessionView {
+  const newestFirst = [...items].sort((a, b) => a.introducedDaysAgo - b.introducedDaysAgo);
+  const newWord = newestFirst[0];
+  const dueReviews = items.filter((item) => item.id !== newWord.id && isDue(item.dueAt, now));
+  const upcoming = items.filter((item) => item.id !== newWord.id && !isDue(item.dueAt, now));
+
+  return {
+    newWord: pickWordFields(newWord),
+    reviewQueue: dueReviews
+      .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
+      .map((item) => ({ ...pickWordFields(item), dueAt: item.dueAt })),
+    upcomingCount: upcoming.length,
+  };
+}
+
+function pickWordFields(item: TrackedItem) {
+  return {
+    id: item.id,
+    word: item.word,
+    sentenceDe: item.sentenceDe,
+    sentenceEn: item.sentenceEn,
+    strength: item.strength,
+  };
+}
+
+export interface AttemptResult extends ScoredAttempt {
+  tip: string;
+  strength: number;
+  nextDueInDays: number;
+}
+
+export function recordAttempt(id: string, heardText: string, now = new Date()): AttemptResult | null {
+  const item = items.find((i) => i.id === id);
+  if (!item) return null;
+
+  const scored = scoreAttempt(item.sentenceDe, heardText);
+  item.strength = nextStrength(item.strength, scored.score);
+  const nextDueInDays = intervalDaysForStrength(item.strength);
+  item.dueAt = addDays(now, nextDueInDays);
+
+  return {
+    ...scored,
+    tip: scored.perfect ? item.strongTip : item.tip,
+    strength: item.strength,
+    nextDueInDays,
+  };
+}
+
+export function resetStore(now = new Date()): void {
+  items.splice(0, items.length, ...seedItems(now));
+}

@@ -1,0 +1,182 @@
+.screen {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 64px 24px 48px;
+  text-align: left;
+  min-height: 100svh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.lede {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 8px 20px;
+  margin-bottom: 32px;
+}
+
+.queue-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.queue-row:last-child {
+  border-bottom: none;
+}
+
+.queue-row--new .queue-word {
+  font-weight: 600;
+}
+
+.queue-word {
+  font-size: 16px;
+}
+
+.queue-tag {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.queue-strength {
+  color: var(--accent);
+  letter-spacing: 2px;
+  font-size: 12px;
+}
+
+.upcoming-note {
+  padding: 12px 0 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.primary-button {
+  font: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff8ef;
+  cursor: pointer;
+  margin-top: auto;
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primary-button:not(:disabled):hover {
+  filter: brightness(1.06);
+}
+
+.sentence-de {
+  font-family: var(--serif);
+  font-size: 24px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.sentence-en {
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+
+.sentence-de--matched {
+  margin-bottom: 20px;
+}
+
+.word-correct {
+  color: var(--success);
+}
+
+.word-incorrect {
+  color: var(--error);
+  text-decoration: underline;
+  text-decoration-style: wavy;
+}
+
+.tip {
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+
+.mic-button {
+  font: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 20px;
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.mic-button--active {
+  background: var(--accent-soft);
+}
+
+.mic-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.manual-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manual-fallback input {
+  font: inherit;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text);
+}
+
+.fallback-note {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.error-text {
+  color: var(--error);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.scoring-note {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-top: 8px;
+}
