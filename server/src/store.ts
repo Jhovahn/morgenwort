@@ -1,4 +1,4 @@
-import { TODAYS_LESSON_TITLE, VOCAB, type VocabItem } from "./content.js";
+import { LESSON_CALENDAR, VOCAB, lessonTitleForDay, type VocabItem } from "./content.js";
 import { addDays, intervalDaysForStrength, isDue, nextStrength } from "./srs.js";
 import { scoreAttempt, type ScoredAttempt } from "./scoring.js";
 import { generateTip } from "./tipGenerator.js";
@@ -24,6 +24,7 @@ export interface SessionView {
   newWords: Pick<TrackedItem, "id" | "word" | "sentenceDe" | "sentenceEn" | "strength">[];
   reviewQueue: Pick<TrackedItem, "id" | "word" | "sentenceDe" | "sentenceEn" | "strength" | "dueAt">[];
   upcomingCount: number;
+  upcomingLessons: { day: number; title: string }[];
 }
 
 export function getSession(now = new Date()): SessionView {
@@ -33,16 +34,32 @@ export function getSession(now = new Date()): SessionView {
   // arbitrary, so it's preserved rather than re-sorted.
   const lessonItems = items.filter((item) => item.introducedDaysAgo === 0);
   const lessonIds = new Set(lessonItems.map((item) => item.id));
-  const dueReviews = items.filter((item) => !lessonIds.has(item.id) && isDue(item.dueAt, now));
-  const upcoming = items.filter((item) => !lessonIds.has(item.id) && !isDue(item.dueAt, now));
+
+  // introducedDaysAgo > 0 marks a word from the pre-existing review-demo
+  // pool (already "learned" before day one) rather than a future calendar
+  // day (introducedDaysAgo < 0, not taught yet). Without that guard, the
+  // 60+ not-yet-taught words from later lesson days would inflate
+  // upcomingCount and could in principle surface as "due" once their
+  // (far-future) dueAt arrived — excluding them here keeps review-queue
+  // math scoped to words actually taught so far.
+  const dueReviews = items.filter(
+    (item) => !lessonIds.has(item.id) && item.introducedDaysAgo > 0 && isDue(item.dueAt, now),
+  );
+  const upcomingReviews = items.filter(
+    (item) => !lessonIds.has(item.id) && item.introducedDaysAgo > 0 && !isDue(item.dueAt, now),
+  );
 
   return {
-    lessonTitle: TODAYS_LESSON_TITLE,
+    lessonTitle: lessonTitleForDay(1) ?? "",
     newWords: lessonItems.map(pickWordFields),
     reviewQueue: dueReviews
       .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
       .map((item) => ({ ...pickWordFields(item), dueAt: item.dueAt })),
-    upcomingCount: upcoming.length,
+    upcomingCount: upcomingReviews.length,
+    upcomingLessons: LESSON_CALENDAR.filter((lesson) => lesson.day > 1).map((lesson) => ({
+      day: lesson.day,
+      title: lesson.title,
+    })),
   };
 }
 

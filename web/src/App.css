@@ -77,6 +77,38 @@
   color: color-mix(in srgb, var(--color-text) 55%, transparent);
 }
 
+.card-heading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  padding: var(--space-3) 0 var(--space-1);
+}
+
+.calendar-row {
+  display: flex;
+  gap: var(--space-3);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 14px;
+}
+
+.calendar-row:last-child {
+  border-bottom: none;
+}
+
+.calendar-day {
+  flex: none;
+  width: 52px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.calendar-title {
+  flex: 1;
+}
+
 .primary-button {
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);

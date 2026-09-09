@@ -16,9 +16,18 @@ Render cold-start behavior, not app latency.
 
 Scoped to the core loop — **speak → done → home**, looping through the
 day's lesson and review queue. Cut: permission flow, lock-screen
-simulation, quiz mode, extra reviews, tomorrow's-word teaser. Same data
-model; see `server/src/content.ts` for where that content would plug in.
+simulation, quiz mode, extra reviews. Same data model; see
+`server/src/content.ts` for where that content would plug in.
 
+- **The curriculum is a real calendar, 2 weeks of it hand-written.**
+  `LESSON_CALENDAR` maps day → title → word ids; `VOCAB` is derived from
+  it, not authored separately, so a day and its words can't drift apart
+  (`content.test.ts` also checks every id resolves). Writing all ~90 days
+  of a 3-month curriculum at this quality bar wasn't a good use of a
+  take-home's time, and 90 days of thinner, templated content would
+  undercut the thing this is actually demonstrating — adding day 15 is
+  one more calendar entry plus its content, nothing structural changes.
+  Home shows the next 13 days' titles (not their words) as a preview.
 - **Scoring is a word-match diff, not phonetic analysis.** Speech-to-text
   is real (Web Speech API); `scoring.ts` diffs the transcript against the
   target sentence, so it can't hear a wrong vowel inside a word it
@@ -103,6 +112,12 @@ widening, due-date comparison) and `scoring.ts` (word-match diffing:
 case/punctuation handling, partial matches, empty input). `tipGenerator.ts`
 has one test covering the no-API-key fallback path — the only branch that's
 deterministic enough to assert on without mocking the Anthropic SDK, which
-felt like more scaffolding than a take-home warrants. The Express layer and
-React components are thin enough that bugs there would be visually obvious;
-the scheduling and scoring math is where a subtle off-by-one would hide.
+felt like more scaffolding than a take-home warrants. `content.test.ts`
+checks calendar/vocab integrity (every referenced word id actually
+resolves, no duplicates, day numbers consecutive) — worth it specifically
+because that data is hand-typed across two structures at a scale (70+
+ids) where a typo is plausible and, without a test, would fail silently:
+object-spreading an unresolved id doesn't throw, it just produces a
+`VocabItem` with every field `undefined`. The Express layer and React
+components are thin enough that bugs there would be visually obvious; the
+scheduling and scoring math is where a subtle off-by-one would hide.

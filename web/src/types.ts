@@ -6,11 +6,17 @@ export interface WordSummary {
   strength: number;
 }
 
+export interface UpcomingLesson {
+  day: number;
+  title: string;
+}
+
 export interface SessionView {
   lessonTitle: string;
   newWords: WordSummary[];
   reviewQueue: (WordSummary & { dueAt: string })[];
   upcomingCount: number;
+  upcomingLessons: UpcomingLesson[];
 }
 
 // "repeat": the target German sentence is shown; read it aloud. Used for

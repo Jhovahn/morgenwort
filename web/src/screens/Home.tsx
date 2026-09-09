@@ -43,6 +43,18 @@ export function Home({ session, onStart }: HomeProps) {
         )}
       </div>
 
+      {session.upcomingLessons.length > 0 && (
+        <div className="card calendar-card">
+          <p className="card-heading">Coming up</p>
+          {session.upcomingLessons.map((lesson) => (
+            <div className="calendar-row" key={lesson.day}>
+              <span className="calendar-day">Day {lesson.day}</span>
+              <span className="calendar-title">{lesson.title}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <button className="primary-button" onClick={onStart}>
         Start today&rsquo;s session
       </button>
