@@ -10,44 +10,26 @@ https://morgenwort-server.onrender.com. The API is on Render's free tier,
 so the first request after idling can take ~30-60s to wake it — that's
 Render cold-start behavior, not app latency.
 
+![Morgenwort home screen: today's lesson, five new words plus one review, and a start-session button](docs/screenshot-home.png)
+
 ## What's here vs. what's cut
 
-This was scoped down deliberately from a larger design (permission flow,
-lock-screen notification simulation, quiz mode, "extra reviews," a
-tomorrow's-word teaser) to the core loop that proves the concept end to end:
-**speak → done → home**, looping through each item in the day's lesson and
-review queue on the same speak screen. The cut screens are straightforward
-extensions of the same data model, not architectural gaps — see
-`server/src/content.ts` for where quiz-style content would plug in.
+Scoped to the core loop — **speak → done → home**, looping through the
+day's lesson and review queue. Cut: permission flow, lock-screen
+simulation, quiz mode, extra reviews, tomorrow's-word teaser. Same data
+model; see `server/src/content.ts` for where that content would plug in.
 
-**Pronunciation scoring is a mock, and deliberately so.** The design implies
-phoneme-level feedback (e.g. "your ü in Küche is coming out as oo"). Real
-pronunciation analysis is an ML problem outside a take-home's scope. Instead:
-speech-to-text is real (the browser's native Web Speech API), and scoring is
-a deterministic word-by-word diff between the target sentence and what was
-actually transcribed (`server/src/scoring.ts`) — grounded in a real
-transcript, not faked, but it can't hear a wrong vowel *inside* a correctly
-transcribed word. This mirrors a pattern already established in a sibling
-project of mine (Clarity, a voice-transcription app): mock the capability
-you don't have, but be explicit about the boundary rather than hiding it.
-
-**The feedback tip itself is Claude-generated, with a curated fallback.**
-Correctness (score, per-word match) is always decided by the deterministic
-diff above — the model never touches that. Its only job is turning a
-curated, human-written note about this vocab item's known trouble spot
-(`content.ts`'s `tip`/`strongTip`) into a short, personalized coaching
-message that references which specific word you got wrong, given the
-target sentence, the transcript, and the per-word result
-(`server/src/tipGenerator.ts`). With no `ANTHROPIC_API_KEY` set, it returns
-the curated note verbatim instead — same fallback pattern as the scoring
-decision above, and as Clarity's Whisper/Claude mocks.
-
-**State is in-memory, not persisted.** One demo session, reset on server
-restart. A real product would key this by authenticated user and back it
-with a database — no auth exists here to make that meaningful, and adding
-one would be scope creep for a take-home. The spaced-repetition logic itself
-(`server/src/srs.ts`) is written as pure, tested functions specifically so
-swapping in persistence later is a storage change, not a logic rewrite.
+- **Scoring is a word-match diff, not phonetic analysis.** Speech-to-text
+  is real (Web Speech API); `scoring.ts` diffs the transcript against the
+  target sentence, so it can't hear a wrong vowel inside a word it
+  otherwise recognized correctly.
+- **Feedback tips are Claude-generated, with a curated fallback.** The
+  model only phrases the tip from a human-written trouble-spot note
+  (`content.ts`) — it never touches scoring. Falls back to that note
+  verbatim without `ANTHROPIC_API_KEY` (`tipGenerator.ts`).
+- **State is in-memory, reset on restart.** No auth, so no real per-user
+  store to build here; `srs.ts` is pure functions so adding persistence
+  later is a storage change, not a logic rewrite.
 
 ## Architecture
 
