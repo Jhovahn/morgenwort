@@ -52,8 +52,16 @@ export function Home({ session, onStart }: HomeProps) {
           <p className="card-heading">Coming up</p>
           {session.upcomingLessons.map((lesson) => (
             <div className="calendar-row" key={lesson.day}>
-              <span className="calendar-day">Day {lesson.day}</span>
-              <span className="calendar-title">{lesson.title}</span>
+              <div className="calendar-heading">
+                <span className="calendar-day">Day {lesson.day}</span>
+                <span className="calendar-title">
+                  {lesson.title}
+                  <span className="calendar-icon" aria-hidden="true">
+                    {lesson.icon}
+                  </span>
+                </span>
+              </div>
+              <p className="calendar-word">{lesson.featuredWord}</p>
             </div>
           ))}
         </div>

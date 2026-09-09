@@ -97,8 +97,6 @@
 }
 
 .calendar-row {
-  display: flex;
-  gap: var(--space-3);
   padding: 9px 0;
   border-bottom: 1px solid var(--color-divider);
   font-size: 14px;
@@ -108,14 +106,29 @@
   border-bottom: none;
 }
 
+.calendar-heading {
+  display: flex;
+  gap: var(--space-2);
+}
+
 .calendar-day {
   flex: none;
-  width: 52px;
   color: color-mix(in srgb, var(--color-text) 55%, transparent);
 }
 
 .calendar-title {
   flex: 1;
+}
+
+.calendar-word {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  margin-top: 2px;
+}
+
+.calendar-icon {
+  font-size: 14px;
+  margin-left: var(--space-2);
 }
 
 .primary-button {
