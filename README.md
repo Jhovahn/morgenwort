@@ -5,6 +5,11 @@ words plus any words due for spaced-repetition review, has you speak each
 example sentence aloud, and scores your attempt against what the browser's
 speech recognizer actually heard.
 
+**Live:** https://morgenwort-jhovahn1.vercel.app (frontend) · API at
+https://morgenwort-server.onrender.com. The API is on Render's free tier,
+so the first request after idling can take ~30-60s to wake it — that's
+Render cold-start behavior, not app latency.
+
 ## What's here vs. what's cut
 
 This was scoped down deliberately from a larger design (permission flow,
