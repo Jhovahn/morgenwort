@@ -6,7 +6,7 @@ services:
     rootDir: server
     buildCommand: npm install && npm run build
     startCommand: npm start
-    healthCheckPath: /api/session
+    healthCheckPath: /api/health
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false

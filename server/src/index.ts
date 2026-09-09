@@ -10,6 +10,16 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 8787;
 app.use(cors());
 app.use(express.json());
 
+// Render's deploy health check needs a GET route that's always cheap and
+// always 200 -- registered ahead of the rate limiter so frequent health
+// checks can never themselves trip it. /api/session used to double as
+// this before it became POST-only; a GET health check against a
+// POST-only route 404s, which reads to Render as "unhealthy" and blocks
+// the rollout from ever completing, silently, with no build error.
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 // Crude per-IP limiter — no auth on this API, this plus the fixed content
 // set is the whole cost-control story. Fine for a demo, not production.
 app.use(
