@@ -43,6 +43,10 @@ export function Home({ session, onStart }: HomeProps) {
         )}
       </div>
 
+      <button className="primary-button" onClick={onStart}>
+        Start today&rsquo;s session
+      </button>
+
       {session.upcomingLessons.length > 0 && (
         <div className="card calendar-card">
           <p className="card-heading">Coming up</p>
@@ -54,10 +58,6 @@ export function Home({ session, onStart }: HomeProps) {
           ))}
         </div>
       )}
-
-      <button className="primary-button" onClick={onStart}>
-        Start today&rsquo;s session
-      </button>
     </div>
   );
 }

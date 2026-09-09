@@ -31,6 +31,15 @@
   margin-bottom: var(--space-8);
 }
 
+/* The primary button on Home sits between the today-card and the Coming
+ * up card, not pinned to the bottom of the viewport like it is elsewhere
+ * (Speak, Done) — override the shared .primary-button's margin-top: auto
+ * for this one placement rather than changing it everywhere. */
+.screen-home .primary-button {
+  margin-top: 0;
+  margin-bottom: var(--space-8);
+}
+
 .queue-row {
   display: flex;
   align-items: center;
