@@ -1,12 +1,19 @@
 // Minimal ambient types for the Web Speech API — not in TS's default DOM
 // lib. Only the surface this app actually uses.
-interface SpeechRecognitionResultLike {
+interface SpeechRecognitionAlternativeLike {
   transcript: string;
 }
 
+interface SpeechRecognitionResultLike {
+  [index: number]: SpeechRecognitionAlternativeLike;
+  length: number;
+  isFinal: boolean;
+}
+
 interface SpeechRecognitionEventLike extends Event {
+  resultIndex: number;
   results: {
-    [index: number]: { [index: number]: SpeechRecognitionResultLike; length: number };
+    [index: number]: SpeechRecognitionResultLike;
     length: number;
   };
 }

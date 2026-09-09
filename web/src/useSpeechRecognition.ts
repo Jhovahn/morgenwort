@@ -15,13 +15,19 @@ export function useSpeechRecognition() {
 
     const recognition = new SpeechRecognitionCtor();
     recognition.lang = "de-DE";
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
-      const heard = event.results[0]?.[0]?.transcript ?? "";
-      setTranscript(heard);
-      setState("done");
+      let combined = "";
+      let hasFinal = false;
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        combined += result[0]?.transcript ?? "";
+        if (result.isFinal) hasFinal = true;
+      }
+      setTranscript(combined.trim());
+      if (hasFinal) setState("done");
     };
     recognition.onerror = () => setState("error");
     recognition.onend = () => setState((current) => (current === "listening" ? "done" : current));

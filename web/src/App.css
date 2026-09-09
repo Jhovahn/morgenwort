@@ -140,6 +140,14 @@
   margin-bottom: 12px;
 }
 
+.live-transcript {
+  font-family: var(--serif);
+  font-size: 20px;
+  color: var(--text-muted);
+  min-height: 1.4em;
+  margin-bottom: 12px;
+}
+
 .mic-button--active {
   background: var(--accent-soft);
 }

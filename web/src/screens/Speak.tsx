@@ -78,6 +78,9 @@ export function Speak({ item, onResult }: SpeakProps) {
           >
             {recognition.state === "listening" ? "Listening…" : "Tap to speak"}
           </button>
+          {recognition.state === "listening" && (
+            <p className="live-transcript">{recognition.transcript || "…"}</p>
+          )}
           {recognition.state === "error" && (
             <p className="error-text">Didn&rsquo;t catch that — tap to try again.</p>
           )}
