@@ -17,11 +17,15 @@ export function Speak({ item, position, total, onResult }: SpeakProps) {
   const [result, setResult] = useState<AttemptResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  function resetAttempt() {
     setResult(null);
     setError(null);
     setManualText("");
     recognition.reset();
+  }
+
+  useEffect(() => {
+    resetAttempt();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.id]);
 
@@ -58,9 +62,14 @@ export function Speak({ item, position, total, onResult }: SpeakProps) {
           ))}
         </p>
         <p className="tip">{result.tip}</p>
-        <button className="primary-button" onClick={() => onResult(result, recognition.transcript || manualText)}>
-          Next
-        </button>
+        <div className="button-row">
+          <button className="secondary-button" onClick={resetAttempt}>
+            Try again
+          </button>
+          <button className="primary-button" onClick={() => onResult(result, recognition.transcript || manualText)}>
+            Next
+          </button>
+        </div>
       </div>
     );
   }
