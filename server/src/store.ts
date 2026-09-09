@@ -1,6 +1,7 @@
 import { VOCAB, type VocabItem } from "./content.js";
 import { addDays, intervalDaysForStrength, isDue, nextStrength } from "./srs.js";
 import { scoreAttempt, type ScoredAttempt } from "./scoring.js";
+import { generateTip } from "./tipGenerator.js";
 
 interface TrackedItem extends VocabItem {
   dueAt: Date;
@@ -55,7 +56,11 @@ export interface AttemptResult extends ScoredAttempt {
   nextDueInDays: number;
 }
 
-export function recordAttempt(id: string, heardText: string, now = new Date()): AttemptResult | null {
+export async function recordAttempt(
+  id: string,
+  heardText: string,
+  now = new Date(),
+): Promise<AttemptResult | null> {
   const item = items.find((i) => i.id === id);
   if (!item) return null;
 
@@ -64,9 +69,18 @@ export function recordAttempt(id: string, heardText: string, now = new Date()): 
   const nextDueInDays = intervalDaysForStrength(item.strength);
   item.dueAt = addDays(now, nextDueInDays);
 
+  const tip = await generateTip({
+    word: item.word,
+    sentenceDe: item.sentenceDe,
+    heardText,
+    matched: scored.matched,
+    perfect: scored.perfect,
+    cannedTip: scored.perfect ? item.strongTip : item.tip,
+  });
+
   return {
     ...scored,
-    tip: scored.perfect ? item.strongTip : item.tip,
+    tip,
     strength: item.strength,
     nextDueInDays,
   };

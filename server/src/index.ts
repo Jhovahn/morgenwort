@@ -1,3 +1,4 @@
+import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import rateLimit from "express-rate-limit";
@@ -20,14 +21,14 @@ app.get("/api/session", (_req, res) => {
   res.json(getSession());
 });
 
-app.post("/api/attempt", (req, res) => {
+app.post("/api/attempt", async (req, res) => {
   const { id, heardText } = req.body ?? {};
   if (typeof id !== "string" || typeof heardText !== "string") {
     res.status(400).json({ error: "id and heardText are required strings" });
     return;
   }
 
-  const result = recordAttempt(id, heardText);
+  const result = await recordAttempt(id, heardText);
   if (!result) {
     res.status(404).json({ error: `no vocab item with id "${id}"` });
     return;
