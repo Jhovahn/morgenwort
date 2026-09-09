@@ -1,9 +1,9 @@
 # Morgenwort
 
-A German daily-word learning app: each day surfaces one new word plus any
-words due for spaced-repetition review, has you speak the example sentence
-aloud, and scores your attempt against what the browser's speech recognizer
-actually heard.
+A German daily-word learning app: each day surfaces a themed lesson of new
+words plus any words due for spaced-repetition review, has you speak each
+example sentence aloud, and scores your attempt against what the browser's
+speech recognizer actually heard.
 
 ## What's here vs. what's cut
 

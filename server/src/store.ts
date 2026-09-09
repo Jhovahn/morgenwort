@@ -1,4 +1,4 @@
-import { VOCAB, type VocabItem } from "./content.js";
+import { TODAYS_LESSON_TITLE, VOCAB, type VocabItem } from "./content.js";
 import { addDays, intervalDaysForStrength, isDue, nextStrength } from "./srs.js";
 import { scoreAttempt, type ScoredAttempt } from "./scoring.js";
 import { generateTip } from "./tipGenerator.js";
@@ -20,19 +20,25 @@ function seedItems(now: Date): TrackedItem[] {
 const items: TrackedItem[] = seedItems(new Date());
 
 export interface SessionView {
-  newWord: Pick<TrackedItem, "id" | "word" | "sentenceDe" | "sentenceEn" | "strength">;
+  lessonTitle: string;
+  newWords: Pick<TrackedItem, "id" | "word" | "sentenceDe" | "sentenceEn" | "strength">[];
   reviewQueue: Pick<TrackedItem, "id" | "word" | "sentenceDe" | "sentenceEn" | "strength" | "dueAt">[];
   upcomingCount: number;
 }
 
 export function getSession(now = new Date()): SessionView {
-  const newestFirst = [...items].sort((a, b) => a.introducedDaysAgo - b.introducedDaysAgo);
-  const newWord = newestFirst[0];
-  const dueReviews = items.filter((item) => item.id !== newWord.id && isDue(item.dueAt, now));
-  const upcoming = items.filter((item) => item.id !== newWord.id && !isDue(item.dueAt, now));
+  // Today's lesson is every item introduced today (introducedDaysAgo === 0),
+  // in content.ts's authored order — that ordering is the lesson's intended
+  // narrative sequence (get up -> make the bed -> shower -> ...), not
+  // arbitrary, so it's preserved rather than re-sorted.
+  const lessonItems = items.filter((item) => item.introducedDaysAgo === 0);
+  const lessonIds = new Set(lessonItems.map((item) => item.id));
+  const dueReviews = items.filter((item) => !lessonIds.has(item.id) && isDue(item.dueAt, now));
+  const upcoming = items.filter((item) => !lessonIds.has(item.id) && !isDue(item.dueAt, now));
 
   return {
-    newWord: pickWordFields(newWord),
+    lessonTitle: TODAYS_LESSON_TITLE,
+    newWords: lessonItems.map(pickWordFields),
     reviewQueue: dueReviews
       .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
       .map((item) => ({ ...pickWordFields(item), dueAt: item.dueAt })),

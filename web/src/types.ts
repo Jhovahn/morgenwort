@@ -7,7 +7,8 @@ export interface WordSummary {
 }
 
 export interface SessionView {
-  newWord: WordSummary;
+  lessonTitle: string;
+  newWords: WordSummary[];
   reviewQueue: (WordSummary & { dueAt: string })[];
   upcomingCount: number;
 }

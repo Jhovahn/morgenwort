@@ -32,7 +32,7 @@ function App() {
 
   function startSession() {
     if (!session) return;
-    setQueue([session.newWord, ...session.reviewQueue]);
+    setQueue([...session.newWords, ...session.reviewQueue]);
     setIndex(0);
     setCompleted([]);
     setScreen("word");
