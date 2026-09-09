@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { fetchSession } from "./api";
+import { loadProgress, saveProgress, type StoredProgress } from "./progress";
 import { Done } from "./screens/Done";
 import { Home } from "./screens/Home";
 import { Speak } from "./screens/Speak";
@@ -22,6 +23,7 @@ const COLD_START_HINT_MS = 4000;
 function App() {
   const [screen, setScreen] = useState<Screen>("loading");
   const [session, setSession] = useState<SessionView | null>(null);
+  const [saved, setSaved] = useState<StoredProgress | null>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [index, setIndex] = useState(0);
   const [completed, setCompleted] = useState<CompletedAttempt[]>([]);
@@ -34,8 +36,11 @@ function App() {
   }, [screen]);
 
   useEffect(() => {
-    fetchSession()
+    fetchSession(loadProgress() ?? undefined)
       .then((data) => {
+        const next = { currentDay: data.currentDay, progress: data.progress };
+        saveProgress(next);
+        setSaved(next);
         setSession(data);
         setScreen("home");
       })
@@ -55,12 +60,28 @@ function App() {
 
   function handleAttemptResult(result: AttemptResult, currentWord: QueueItem) {
     setCompleted((prev) => [...prev, { word: currentWord.word, score: result.score }]);
+
     const nextIndex = index + 1;
-    if (nextIndex < queue.length) {
+    const isLastItem = nextIndex >= queue.length;
+
+    // A finished lesson unlocks the next day for the *next* visit -- saved
+    // immediately (not deferred to leaving Done) so the day advances even
+    // if the tab closes right after the last word.
+    setSaved((prev) => {
+      if (!prev) return prev;
+      const next: StoredProgress = {
+        currentDay: isLastItem ? prev.currentDay + 1 : prev.currentDay,
+        progress: { ...prev.progress, [currentWord.id]: { strength: result.strength, dueAt: result.dueAt } },
+      };
+      saveProgress(next);
+      return next;
+    });
+
+    if (isLastItem) {
+      setScreen("done");
+    } else {
       setIndex(nextIndex);
       setScreen("speak");
-    } else {
-      setScreen("done");
     }
   }
 
@@ -68,7 +89,10 @@ function App() {
     setSlowLoad(false);
     setScreen("loading");
     try {
-      const data = await fetchSession();
+      const data = await fetchSession(saved ?? undefined);
+      const next = { currentDay: data.currentDay, progress: data.progress };
+      saveProgress(next);
+      setSaved(next);
       setSession(data);
       setScreen("home");
     } catch {

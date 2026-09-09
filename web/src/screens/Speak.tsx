@@ -34,7 +34,7 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
     setScoring(true);
     setError(null);
     try {
-      const attempt = await submitAttempt(item.id, heardText);
+      const attempt = await submitAttempt(item.id, heardText, item.strength);
       setResult(attempt);
     } catch {
       setError("Couldn't reach the server — check that the API is running.");

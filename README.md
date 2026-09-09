@@ -36,9 +36,16 @@ simulation, quiz mode, extra reviews. Same data model; see
   model only phrases the tip from a human-written trouble-spot note
   (`content.ts`) — it never touches scoring. Falls back to that note
   verbatim without `ANTHROPIC_API_KEY` (`tipGenerator.ts`).
-- **State is in-memory, reset on restart.** No auth, so no real per-user
-  store to build here; `srs.ts` is pure functions so adding persistence
-  later is a storage change, not a logic rewrite.
+- **Progress lives in the browser (`localStorage`), not the server.**
+  `server/src/store.ts` holds no state between requests — `getSession` and
+  `recordAttempt` are pure functions of whatever progress the client sends
+  them, returned back for the client to persist (`web/src/progress.ts`).
+  No auth, so there's no real per-user store to build server-side anyway;
+  this also means progress survives a Render restart/redeploy, which an
+  in-memory store never could. A day advances when its lesson is finished,
+  not by real calendar dates — see `store.test.ts` for the scheduling
+  edge cases (day boundaries, past-the-calendar fallback, a word that's
+  simultaneously today's lesson and technically "due").
 
 ## Architecture
 
@@ -118,6 +125,10 @@ resolves, no duplicates, day numbers consecutive) — worth it specifically
 because that data is hand-typed across two structures at a scale (70+
 ids) where a typo is plausible and, without a test, would fail silently:
 object-spreading an unresolved id doesn't throw, it just produces a
-`VocabItem` with every field `undefined`. The Express layer and React
-components are thin enough that bugs there would be visually obvious; the
-scheduling and scoring math is where a subtle off-by-one would hide.
+`VocabItem` with every field `undefined`. `store.ts` (session/progress
+computation) has its own suite now that it's stateless, pure functions of
+caller-supplied progress rather than a thin wrapper around mutable
+in-memory state — the day-boundary and past-the-calendar edge cases are
+exactly the kind of thing that's easy to get subtly wrong and hard to
+notice by eye. The Express route handlers and React components stay
+untested; they're thin enough that bugs there would be visually obvious.
