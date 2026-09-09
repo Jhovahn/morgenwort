@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { submitAttempt } from "../api";
-import type { AttemptResult, WordSummary } from "../types";
+import type { AttemptResult, PracticeMode, WordSummary } from "../types";
 import { useSpeechRecognition } from "../useSpeechRecognition";
 
 interface SpeakProps {
   item: WordSummary;
+  mode: PracticeMode;
   position: number;
   total: number;
   onResult: (result: AttemptResult, heardText: string) => void;
 }
 
-export function Speak({ item, position, total, onResult }: SpeakProps) {
+export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
   const recognition = useSpeechRecognition();
   const [manualText, setManualText] = useState("");
   const [scoring, setScoring] = useState(false);
@@ -78,10 +79,20 @@ export function Speak({ item, position, total, onResult }: SpeakProps) {
     <div className="screen screen-speak">
       <p className="eyebrow">
         {position} of {total}
+        {mode === "translate" ? " · Translate" : ""}
       </p>
       <h1>{item.word}</h1>
-      <p className="sentence-de">{item.sentenceDe}</p>
-      <p className="sentence-en">{item.sentenceEn}</p>
+      {mode === "translate" ? (
+        <>
+          <p className="lede">Say it in German.</p>
+          <p className="sentence-de sentence-de--standalone">{item.sentenceEn}</p>
+        </>
+      ) : (
+        <>
+          <p className="sentence-de">{item.sentenceDe}</p>
+          <p className="sentence-en">{item.sentenceEn}</p>
+        </>
+      )}
 
       {recognition.supported ? (
         <>

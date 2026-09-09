@@ -13,6 +13,18 @@ export interface SessionView {
   upcomingCount: number;
 }
 
+// "repeat": the target German sentence is shown; read it aloud. Used for
+// new lesson words, which haven't been learned yet, so there's nothing to
+// recall.
+// "translate": only the English sentence is shown; produce the German
+// from memory. Used for review-queue words, which the learner is
+// expected to already know -- recall, not repetition, is the point.
+export type PracticeMode = "repeat" | "translate";
+
+export interface QueueItem extends WordSummary {
+  mode: PracticeMode;
+}
+
 export interface WordMatch {
   word: string;
   correct: boolean;

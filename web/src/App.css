@@ -153,6 +153,10 @@
   margin-bottom: var(--space-4);
 }
 
+.sentence-de--standalone {
+  margin-bottom: var(--space-8);
+}
+
 .word-correct {
   color: var(--color-text);
 }

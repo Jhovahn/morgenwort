@@ -4,7 +4,7 @@ import { fetchSession } from "./api";
 import { Done } from "./screens/Done";
 import { Home } from "./screens/Home";
 import { Speak } from "./screens/Speak";
-import type { AttemptResult, SessionView, WordSummary } from "./types";
+import type { AttemptResult, QueueItem, SessionView } from "./types";
 
 type Screen = "loading" | "home" | "speak" | "done" | "error";
 
@@ -22,7 +22,7 @@ const COLD_START_HINT_MS = 4000;
 function App() {
   const [screen, setScreen] = useState<Screen>("loading");
   const [session, setSession] = useState<SessionView | null>(null);
-  const [queue, setQueue] = useState<WordSummary[]>([]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
   const [index, setIndex] = useState(0);
   const [completed, setCompleted] = useState<CompletedAttempt[]>([]);
   const [slowLoad, setSlowLoad] = useState(false);
@@ -44,13 +44,16 @@ function App() {
 
   function startSession() {
     if (!session) return;
-    setQueue([...session.newWords, ...session.reviewQueue]);
+    setQueue([
+      ...session.newWords.map((w) => ({ ...w, mode: "repeat" as const })),
+      ...session.reviewQueue.map((w) => ({ ...w, mode: "translate" as const })),
+    ]);
     setIndex(0);
     setCompleted([]);
     setScreen("speak");
   }
 
-  function handleAttemptResult(result: AttemptResult, currentWord: WordSummary) {
+  function handleAttemptResult(result: AttemptResult, currentWord: QueueItem) {
     setCompleted((prev) => [...prev, { word: currentWord.word, score: result.score }]);
     const nextIndex = index + 1;
     if (nextIndex < queue.length) {
@@ -105,6 +108,7 @@ function App() {
     return (
       <Speak
         item={currentItem}
+        mode={currentItem.mode}
         position={index + 1}
         total={queue.length}
         onResult={(result) => handleAttemptResult(result, currentItem)}
