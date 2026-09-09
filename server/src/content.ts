@@ -9,23 +9,21 @@ export interface VocabItem {
   tip: string;
   /** Shown when the attempt matches every word. */
   strongTip: string;
-  introducedDaysAgo: number;
-  strength: number;
 }
 
 export interface LessonDay {
   day: number;
   title: string;
+  /** A single emoji representing the lesson's theme — used on Home next to
+   * the day's title, no icon library or assets involved. */
+  icon: string;
   wordIds: string[];
 }
 
-type VocabContent = Omit<VocabItem, "introducedDaysAgo" | "strength">;
-
-/** Content for every calendar-taught word, keyed by id. introducedDaysAgo
- * and strength aren't authored here — they're derived from LESSON_CALENDAR
- * below, so "which day teaches which word" has exactly one source of truth
- * instead of a day number and an offset that could quietly drift apart. */
-const LESSON_CONTENT: Record<string, VocabContent> = {
+/** Content for every calendar-taught word, keyed by id. Which day teaches
+ * which word lives only in LESSON_CALENDAR below — this map is pure
+ * content, no progress or scheduling state. */
+const LESSON_CONTENT: Record<string, VocabItem> = {
   // Day 1 — Morning routine
   aufstehen: {
     id: "aufstehen",
@@ -623,20 +621,20 @@ const LESSON_CONTENT: Record<string, VocabContent> = {
  * LESSON_CONTENT for its wordIds) extends directly; adding day 15 means
  * adding one more entry of each, nothing structural changes. */
 export const LESSON_CALENDAR: LessonDay[] = [
-  { day: 1, title: "Morning routine", wordIds: ["aufstehen", "das-bett", "die-dusche", "die-zaehne", "das-fruehstueck"] },
-  { day: 2, title: "Getting dressed and out the door", wordIds: ["die-kleidung", "der-mantel", "der-schluessel", "die-tuer", "die-strasse"] },
-  { day: 3, title: "The commute", wordIds: ["die-u-bahn", "der-bus", "das-fahrrad", "die-ampel", "puenktlich"] },
-  { day: 4, title: "At the office", wordIds: ["das-buero", "der-kollege", "die-besprechung", "der-computer", "die-pause"] },
-  { day: 5, title: "Lunch break", wordIds: ["das-mittagessen", "der-salat", "das-brot", "der-loeffel", "die-gabel"] },
-  { day: 6, title: "Telling time", wordIds: ["die-uhrzeit", "die-minute", "die-stunde", "spaet", "frueh"] },
-  { day: 7, title: "Talking about the weather", wordIds: ["das-wetter", "die-sonne", "der-regen", "kalt", "warm"] },
-  { day: 8, title: "Grocery shopping", wordIds: ["der-supermarkt", "einkaufen", "das-geld", "bezahlen", "die-kasse"] },
-  { day: 9, title: "Family", wordIds: ["die-familie", "die-mutter", "der-vater", "die-schwester", "der-bruder"] },
-  { day: 10, title: "A quiet evening at home", wordIds: ["das-wohnzimmer", "das-sofa", "fernsehen", "kochen", "das-abendessen"] },
-  { day: 11, title: "Feelings", wordIds: ["muede", "gluecklich", "traurig", "aufgeregt", "ruhig"] },
-  { day: 12, title: "Weekend plans", wordIds: ["das-wochenende", "der-ausflug", "wandern", "der-park", "spazieren"] },
-  { day: 13, title: "Health and the doctor", wordIds: ["der-arzt", "krank", "gesund", "die-apotheke", "die-medizin"] },
-  { day: 14, title: "Connecting your ideas", wordIds: ["trotzdem", "deshalb", "vielleicht", "wahrscheinlich", "endlich"] },
+  { day: 1, title: "Morning routine", icon: "🌅", wordIds: ["aufstehen", "das-bett", "die-dusche", "die-zaehne", "das-fruehstueck"] },
+  { day: 2, title: "Getting dressed and out the door", icon: "🧥", wordIds: ["die-kleidung", "der-mantel", "der-schluessel", "die-tuer", "die-strasse"] },
+  { day: 3, title: "The commute", icon: "🚇", wordIds: ["die-u-bahn", "der-bus", "das-fahrrad", "die-ampel", "puenktlich"] },
+  { day: 4, title: "At the office", icon: "💼", wordIds: ["das-buero", "der-kollege", "die-besprechung", "der-computer", "die-pause"] },
+  { day: 5, title: "Lunch break", icon: "🍴", wordIds: ["das-mittagessen", "der-salat", "das-brot", "der-loeffel", "die-gabel"] },
+  { day: 6, title: "Telling time", icon: "⏰", wordIds: ["die-uhrzeit", "die-minute", "die-stunde", "spaet", "frueh"] },
+  { day: 7, title: "Talking about the weather", icon: "⛅", wordIds: ["das-wetter", "die-sonne", "der-regen", "kalt", "warm"] },
+  { day: 8, title: "Grocery shopping", icon: "🛒", wordIds: ["der-supermarkt", "einkaufen", "das-geld", "bezahlen", "die-kasse"] },
+  { day: 9, title: "Family", icon: "👪", wordIds: ["die-familie", "die-mutter", "der-vater", "die-schwester", "der-bruder"] },
+  { day: 10, title: "A quiet evening at home", icon: "🏠", wordIds: ["das-wohnzimmer", "das-sofa", "fernsehen", "kochen", "das-abendessen"] },
+  { day: 11, title: "Feelings", icon: "💭", wordIds: ["muede", "gluecklich", "traurig", "aufgeregt", "ruhig"] },
+  { day: 12, title: "Weekend plans", icon: "🥾", wordIds: ["das-wochenende", "der-ausflug", "wandern", "der-park", "spazieren"] },
+  { day: 13, title: "Health and the doctor", icon: "🩺", wordIds: ["der-arzt", "krank", "gesund", "die-apotheke", "die-medizin"] },
+  { day: 14, title: "Connecting your ideas", icon: "🔗", wordIds: ["trotzdem", "deshalb", "vielleicht", "wahrscheinlich", "endlich"] },
 ];
 
 export function lessonTitleForDay(day: number): string | undefined {
@@ -644,11 +642,7 @@ export function lessonTitleForDay(day: number): string | undefined {
 }
 
 const CALENDAR_VOCAB: VocabItem[] = LESSON_CALENDAR.flatMap((lesson) =>
-  lesson.wordIds.map((id) => ({
-    ...LESSON_CONTENT[id],
-    introducedDaysAgo: -(lesson.day - 1),
-    strength: 1,
-  })),
+  lesson.wordIds.map((id) => LESSON_CONTENT[id]),
 );
 
 /** Words the demo user already learned before day one of this calendar —
@@ -662,8 +656,6 @@ const REVIEW_DEMO_VOCAB: VocabItem[] = [
     sentenceEn: "Then I drink a coffee in the kitchen.",
     tip: "The ü in „Küche“ is still coming out as oo. Round your lips, tongue forward.",
     strongTip: "Clean run — the ü landed exactly right.",
-    introducedDaysAgo: 2,
-    strength: 2,
   },
   {
     id: "die-bahn",
@@ -672,8 +664,6 @@ const REVIEW_DEMO_VOCAB: VocabItem[] = [
     sentenceEn: "I take the train to work at eight.",
     tip: "The r in „Arbeit“ is soft, almost swallowed — not a hard English r.",
     strongTip: "Nothing to fix — the r in Arbeit lands exactly right.",
-    introducedDaysAgo: 5,
-    strength: 3,
   },
   {
     id: "gemuetlich",
@@ -682,9 +672,18 @@ const REVIEW_DEMO_VOCAB: VocabItem[] = [
     sentenceEn: "In the evening it is cosy at my place.",
     tip: "ge-müt-lich — three even beats, stress on the middle syllable.",
     strongTip: "Three even beats, stress exactly on müt — well placed.",
-    introducedDaysAgo: 9,
-    strength: 2,
   },
 ];
 
 export const VOCAB: VocabItem[] = [...CALENDAR_VOCAB, ...REVIEW_DEMO_VOCAB];
+
+/** Seed values for a brand-new visitor's default progress (server/src/store.ts's
+ * defaultProgress) — exists only to give a first-time user the same
+ * "you already have a word or two due for review" flavor the old
+ * server-seeded demo had. Once a client has real saved progress this is
+ * never consulted again; it's initial state, not live scheduling data. */
+export const REVIEW_DEMO_SEED: { id: string; introducedDaysAgo: number; strength: number }[] = [
+  { id: "der-kaffee", introducedDaysAgo: 2, strength: 2 },
+  { id: "die-bahn", introducedDaysAgo: 5, strength: 3 },
+  { id: "gemuetlich", introducedDaysAgo: 9, strength: 2 },
+];

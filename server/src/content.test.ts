@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LESSON_CALENDAR, VOCAB, lessonTitleForDay } from "./content.js";
+import { LESSON_CALENDAR, REVIEW_DEMO_SEED, VOCAB, lessonTitleForDay } from "./content.js";
 
 describe("LESSON_CALENDAR / VOCAB integrity", () => {
   it("has no duplicate ids in VOCAB", () => {
@@ -34,10 +34,15 @@ describe("LESSON_CALENDAR / VOCAB integrity", () => {
     }
   });
 
-  it("maps day 1's calendar entry to exactly the words with introducedDaysAgo 0", () => {
-    const day1 = LESSON_CALENDAR.find((lesson) => lesson.day === 1);
-    const todaysWordIds = VOCAB.filter((item) => item.introducedDaysAgo === 0).map((item) => item.id);
-    expect(new Set(todaysWordIds)).toEqual(new Set(day1?.wordIds));
+  it("resolves every REVIEW_DEMO_SEED id to a real VOCAB item outside the calendar", () => {
+    const byId = new Map(VOCAB.map((item) => [item.id, item]));
+    const calendarIds = new Set(LESSON_CALENDAR.flatMap((lesson) => lesson.wordIds));
+    for (const seed of REVIEW_DEMO_SEED) {
+      expect(byId.get(seed.id), `seed references unknown word id "${seed.id}"`).toBeDefined();
+      expect(calendarIds.has(seed.id), `seed id "${seed.id}" should not also be taught by the calendar`).toBe(
+        false,
+      );
+    }
   });
 
   it("looks up a known day's title and returns undefined past the end of the calendar", () => {

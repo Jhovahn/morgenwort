@@ -1,96 +1,132 @@
-import { LESSON_CALENDAR, VOCAB, lessonTitleForDay, type VocabItem } from "./content.js";
+import { LESSON_CALENDAR, REVIEW_DEMO_SEED, VOCAB } from "./content.js";
 import { addDays, intervalDaysForStrength, isDue, nextStrength } from "./srs.js";
 import { scoreAttempt, type ScoredAttempt } from "./scoring.js";
 import { generateTip } from "./tipGenerator.js";
 
-interface TrackedItem extends VocabItem {
-  dueAt: Date;
+// Stateless by design: nothing in this module holds progress between
+// requests. The browser is the source of truth (see web/src/progress.ts) --
+// every call here takes the caller's current progress as an argument and
+// returns what changed, rather than mutating an in-memory store that would
+// reset on every server restart/redeploy (Render's free tier does this
+// often) and couldn't be resumed from a different device visit anyway.
+
+export interface ProgressEntry {
+  strength: number;
+  dueAt: string; // ISO
 }
 
-function seedItems(now: Date): TrackedItem[] {
-  return VOCAB.map((item) => {
-    const introducedAt = addDays(now, -item.introducedDaysAgo);
-    return { ...item, dueAt: addDays(introducedAt, intervalDaysForStrength(item.strength)) };
-  });
+export type ProgressMap = Record<string, ProgressEntry>;
+
+const VOCAB_BY_ID = new Map(VOCAB.map((item) => [item.id, item]));
+
+/** A brand-new visitor's starting point: the pre-existing review-demo pool,
+ * seeded relative to "now" exactly as the old server-side seed did, so a
+ * first-time user still sees a word or two already due for review instead
+ * of a completely empty queue. Never consulted again once a client has its
+ * own saved progress. */
+export function defaultProgress(now: Date): ProgressMap {
+  const progress: ProgressMap = {};
+  for (const seed of REVIEW_DEMO_SEED) {
+    const introducedAt = addDays(now, -seed.introducedDaysAgo);
+    const dueAt = addDays(introducedAt, intervalDaysForStrength(seed.strength));
+    progress[seed.id] = { strength: seed.strength, dueAt: dueAt.toISOString() };
+  }
+  return progress;
 }
 
-// Single in-memory demo session — deliberately not per-user or persistent.
-// A real product would key this store by authenticated user id and back
-// it with a database; out of scope for this take-home (see README).
-const items: TrackedItem[] = seedItems(new Date());
+interface WordSummary {
+  id: string;
+  word: string;
+  sentenceDe: string;
+  sentenceEn: string;
+  strength: number;
+}
 
 export interface SessionView {
+  currentDay: number;
   lessonTitle: string;
-  newWords: Pick<TrackedItem, "id" | "word" | "sentenceDe" | "sentenceEn" | "strength">[];
-  reviewQueue: Pick<TrackedItem, "id" | "word" | "sentenceDe" | "sentenceEn" | "strength" | "dueAt">[];
+  newWords: WordSummary[];
+  reviewQueue: (WordSummary & { dueAt: string })[];
   upcomingCount: number;
-  upcomingLessons: { day: number; title: string }[];
+  upcomingLessons: { day: number; title: string; icon: string; featuredWord: string }[];
+  /** Full progress snapshot, including entries the current view doesn't
+   * otherwise surface (e.g. reviews not yet due) -- the client persists
+   * this verbatim to localStorage after every request rather than trying
+   * to merge partial updates itself. */
+  progress: ProgressMap;
 }
 
-export function getSession(now = new Date()): SessionView {
-  // Today's lesson is every item introduced today (introducedDaysAgo === 0),
-  // in content.ts's authored order — that ordering is the lesson's intended
-  // narrative sequence (get up -> make the bed -> shower -> ...), not
-  // arbitrary, so it's preserved rather than re-sorted.
-  const lessonItems = items.filter((item) => item.introducedDaysAgo === 0);
-  const lessonIds = new Set(lessonItems.map((item) => item.id));
+export function getSession(currentDay: number, progress: ProgressMap, now = new Date()): SessionView {
+  const lesson = LESSON_CALENDAR.find((l) => l.day === currentDay);
+  const lessonWordIds = new Set(lesson?.wordIds ?? []);
 
-  // introducedDaysAgo > 0 marks a word from the pre-existing review-demo
-  // pool (already "learned" before day one) rather than a future calendar
-  // day (introducedDaysAgo < 0, not taught yet). Without that guard, the
-  // 60+ not-yet-taught words from later lesson days would inflate
-  // upcomingCount and could in principle surface as "due" once their
-  // (far-future) dueAt arrived — excluding them here keeps review-queue
-  // math scoped to words actually taught so far.
-  const dueReviews = items.filter(
-    (item) => !lessonIds.has(item.id) && item.introducedDaysAgo > 0 && isDue(item.dueAt, now),
-  );
-  const upcomingReviews = items.filter(
-    (item) => !lessonIds.has(item.id) && item.introducedDaysAgo > 0 && !isDue(item.dueAt, now),
-  );
+  const dueReviews: (WordSummary & { dueAt: string })[] = [];
+  const upcomingReviewIds: string[] = [];
+  for (const [id, entry] of Object.entries(progress)) {
+    if (lessonWordIds.has(id)) continue;
+    const item = VOCAB_BY_ID.get(id);
+    if (!item) continue; // stale/unknown id in client-supplied progress -- ignore rather than throw
+    if (isDue(new Date(entry.dueAt), now)) {
+      dueReviews.push({
+        id: item.id,
+        word: item.word,
+        sentenceDe: item.sentenceDe,
+        sentenceEn: item.sentenceEn,
+        strength: entry.strength,
+        dueAt: entry.dueAt,
+      });
+    } else {
+      upcomingReviewIds.push(id);
+    }
+  }
+
+  const newWords: WordSummary[] = (lesson?.wordIds ?? []).map((id) => {
+    const item = VOCAB_BY_ID.get(id)!;
+    return {
+      id: item.id,
+      word: item.word,
+      sentenceDe: item.sentenceDe,
+      sentenceEn: item.sentenceEn,
+      strength: progress[id]?.strength ?? 1,
+    };
+  });
 
   return {
-    lessonTitle: lessonTitleForDay(1) ?? "",
-    newWords: lessonItems.map(pickWordFields),
-    reviewQueue: dueReviews
-      .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
-      .map((item) => ({ ...pickWordFields(item), dueAt: item.dueAt })),
-    upcomingCount: upcomingReviews.length,
-    upcomingLessons: LESSON_CALENDAR.filter((lesson) => lesson.day > 1).map((lesson) => ({
-      day: lesson.day,
-      title: lesson.title,
+    currentDay,
+    // Past the last authored day, there's no lesson to teach -- see
+    // README for why only 2 weeks are hand-written rather than all ~90.
+    lessonTitle: lesson?.title ?? "You've completed every written lesson!",
+    newWords,
+    reviewQueue: dueReviews.sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()),
+    upcomingCount: upcomingReviewIds.length,
+    upcomingLessons: LESSON_CALENDAR.filter((l) => l.day > currentDay).map((l) => ({
+      day: l.day,
+      title: l.title,
+      icon: l.icon,
+      featuredWord: VOCAB_BY_ID.get(l.wordIds[0])?.word ?? "",
     })),
-  };
-}
-
-function pickWordFields(item: TrackedItem) {
-  return {
-    id: item.id,
-    word: item.word,
-    sentenceDe: item.sentenceDe,
-    sentenceEn: item.sentenceEn,
-    strength: item.strength,
+    progress,
   };
 }
 
 export interface AttemptResult extends ScoredAttempt {
   tip: string;
   strength: number;
-  nextDueInDays: number;
+  dueAt: string;
 }
 
 export async function recordAttempt(
   id: string,
   heardText: string,
+  currentStrength: number,
   now = new Date(),
 ): Promise<AttemptResult | null> {
-  const item = items.find((i) => i.id === id);
+  const item = VOCAB_BY_ID.get(id);
   if (!item) return null;
 
   const scored = scoreAttempt(item.sentenceDe, heardText);
-  item.strength = nextStrength(item.strength, scored.score);
-  const nextDueInDays = intervalDaysForStrength(item.strength);
-  item.dueAt = addDays(now, nextDueInDays);
+  const strength = nextStrength(currentStrength, scored.score);
+  const dueAt = addDays(now, intervalDaysForStrength(strength));
 
   const tip = await generateTip({
     word: item.word,
@@ -104,11 +140,7 @@ export async function recordAttempt(
   return {
     ...scored,
     tip,
-    strength: item.strength,
-    nextDueInDays,
+    strength,
+    dueAt: dueAt.toISOString(),
   };
-}
-
-export function resetStore(now = new Date()): void {
-  items.splice(0, items.length, ...seedItems(now));
 }
