@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: morgenwort-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/session
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false

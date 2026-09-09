@@ -54,9 +54,9 @@ I've used elsewhere for similar full-stack take-homes:
   client-side in the browser; the one external API call is Claude, used to
   phrase the per-attempt feedback tip, and it falls back to a canned tip
   when `ANTHROPIC_API_KEY` is unset (see `server/.env.example`).
-- **`web/`** — React 19 + Vite + TypeScript. Renders the four-screen flow
-  and captures speech via the Web Speech API, falling back to a manual text
-  input in browsers that don't support it (Safari/Firefox).
+- **`web/`** — React 19 + Vite + TypeScript. Renders the home/speak/done
+  flow and captures speech via the Web Speech API, falling back to a manual
+  text input in browsers that don't support it (Safari/Firefox).
 
 ## Commands
 
@@ -86,6 +86,27 @@ implement the Web Speech API, and the app falls back to a text input there.
 
 CI (`.github/workflows/ci.yml`) runs on push/PR to `main`: the server job
 builds and runs the vitest suite; the web job lints and builds.
+
+## Deploying
+
+The API and the frontend deploy separately, since they're separate npm
+projects — no monorepo tooling, no shared build step.
+
+**API — Render**, from `render.yaml` at the repo root (Blueprint deploy):
+root directory `server`, build `npm install && npm run build`, start
+`npm start`. Render injects its own `PORT`; `server/src/index.ts` already
+reads `process.env.PORT`, so no config needed there. Add
+`ANTHROPIC_API_KEY` as a secret in the Render dashboard for live-generated
+tips — the blueprint deliberately leaves it unset (`sync: false`) rather
+than storing it in the repo.
+
+**Web — Vercel**, with the project root set to `web/` (Vercel auto-detects
+the Vite framework preset). Set one environment variable:
+`VITE_API_BASE_URL` = the deployed Render URL (e.g.
+`https://morgenwort-server.onrender.com`). Without it, `web/src/api.ts`
+falls back to relative `/api/...` paths, which only resolve via Vite's
+dev-time proxy — fine locally, broken in a static production build, which
+is why this is a required var, not an optional one, in prod.
 
 ## Testing approach
 
