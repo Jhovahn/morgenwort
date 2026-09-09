@@ -1,3 +1,5 @@
+import { digitToGermanWord } from "./numberWords.js";
+
 /**
  * Attempt scoring is a deterministic word-match diff between the target
  * sentence and the transcript the browser's speech-recognition API heard —
@@ -28,7 +30,9 @@ function tokenize(sentence: string): string[] {
 
 export function scoreAttempt(targetSentence: string, heardText: string): ScoredAttempt {
   const targetWords = tokenize(targetSentence);
-  const heardWords = tokenize(heardText);
+  // The recognizer renders spoken numbers as digits (see numberWords.ts) —
+  // undo that before diffing, since target sentences are always spelled out.
+  const heardWords = tokenize(heardText).map((word) => digitToGermanWord(word) ?? word);
 
   const matched: WordMatch[] = targetWords.map((word, i) => ({
     word,

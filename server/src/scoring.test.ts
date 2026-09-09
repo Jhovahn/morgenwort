@@ -32,4 +32,15 @@ describe("scoreAttempt", () => {
     expect(result.score).toBe(0);
     expect(result.perfect).toBe(false);
   });
+
+  it("normalizes digits the recognizer substitutes for spoken numbers", () => {
+    const result = scoreAttempt("Ich stehe um sieben Uhr auf.", "ich stehe um 7 uhr auf");
+    expect(result.perfect).toBe(true);
+    expect(result.matched.find((m) => m.word === "sieben")).toEqual({ word: "sieben", correct: true });
+  });
+
+  it("leaves unrecognized digits (outside the covered 0-12 range) as a mismatch", () => {
+    const result = scoreAttempt("Der Preis ist siebzehn Euro.", "der preis ist 17 euro");
+    expect(result.matched.find((m) => m.word === "siebzehn")).toEqual({ word: "siebzehn", correct: false });
+  });
 });
