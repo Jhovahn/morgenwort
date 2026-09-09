@@ -4,10 +4,9 @@ import { fetchSession } from "./api";
 import { Done } from "./screens/Done";
 import { Home } from "./screens/Home";
 import { Speak } from "./screens/Speak";
-import { Word } from "./screens/Word";
 import type { AttemptResult, SessionView, WordSummary } from "./types";
 
-type Screen = "loading" | "home" | "word" | "speak" | "done" | "error";
+type Screen = "loading" | "home" | "speak" | "done" | "error";
 
 interface CompletedAttempt {
   word: string;
@@ -35,7 +34,7 @@ function App() {
     setQueue([...session.newWords, ...session.reviewQueue]);
     setIndex(0);
     setCompleted([]);
-    setScreen("word");
+    setScreen("speak");
   }
 
   function handleAttemptResult(result: AttemptResult, currentWord: WordSummary) {
@@ -43,7 +42,7 @@ function App() {
     const nextIndex = index + 1;
     if (nextIndex < queue.length) {
       setIndex(nextIndex);
-      setScreen("word");
+      setScreen("speak");
     } else {
       setScreen("done");
     }
@@ -83,19 +82,15 @@ function App() {
 
   const currentItem = queue[index];
 
-  if (screen === "word" && currentItem) {
+  if (screen === "speak" && currentItem) {
     return (
-      <Word
+      <Speak
         item={currentItem}
         position={index + 1}
         total={queue.length}
-        onReady={() => setScreen("speak")}
+        onResult={(result) => handleAttemptResult(result, currentItem)}
       />
     );
-  }
-
-  if (screen === "speak" && currentItem) {
-    return <Speak item={currentItem} onResult={(result) => handleAttemptResult(result, currentItem)} />;
   }
 
   if (screen === "done") {

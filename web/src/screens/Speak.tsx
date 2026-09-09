@@ -5,10 +5,12 @@ import { useSpeechRecognition } from "../useSpeechRecognition";
 
 interface SpeakProps {
   item: WordSummary;
+  position: number;
+  total: number;
   onResult: (result: AttemptResult, heardText: string) => void;
 }
 
-export function Speak({ item, onResult }: SpeakProps) {
+export function Speak({ item, position, total, onResult }: SpeakProps) {
   const recognition = useSpeechRecognition();
   const [manualText, setManualText] = useState("");
   const [scoring, setScoring] = useState(false);
@@ -65,9 +67,12 @@ export function Speak({ item, onResult }: SpeakProps) {
 
   return (
     <div className="screen screen-speak">
-      <p className="eyebrow">Say it out loud</p>
+      <p className="eyebrow">
+        {position} of {total}
+      </p>
       <h1>{item.word}</h1>
       <p className="sentence-de">{item.sentenceDe}</p>
+      <p className="sentence-en">{item.sentenceEn}</p>
 
       {recognition.supported ? (
         <>

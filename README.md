@@ -10,7 +10,8 @@ speech recognizer actually heard.
 This was scoped down deliberately from a larger design (permission flow,
 lock-screen notification simulation, quiz mode, "extra reviews," a
 tomorrow's-word teaser) to the core loop that proves the concept end to end:
-**word → speak → done → home**. The cut screens are straightforward
+**speak → done → home**, looping through each item in the day's lesson and
+review queue on the same speak screen. The cut screens are straightforward
 extensions of the same data model, not architectural gaps — see
 `server/src/content.ts` for where quiz-style content would plug in.
 
