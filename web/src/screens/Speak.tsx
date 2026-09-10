@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { submitAttempt } from "../api";
 import type { AttemptResult, PracticeMode, WordSummary } from "../types";
 import { useSpeechRecognition } from "../useSpeechRecognition";
+import { useSpeechSynthesis } from "../useSpeechSynthesis";
 
 // Web Speech API error reasons that specifically mean "the browser refused
 // to give this page mic access" -- distinct from no-speech-detected, which
@@ -34,6 +35,7 @@ interface SpeakProps {
 
 export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
   const recognition = useSpeechRecognition();
+  const synthesis = useSpeechSynthesis();
   const [manualText, setManualText] = useState("");
   const [scoring, setScoring] = useState(false);
   const [result, setResult] = useState<AttemptResult | null>(null);
@@ -99,6 +101,11 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
           ))}
         </p>
         <p className="tip">{result.tip}</p>
+        {synthesis.supported && (
+          <button className="listen-button" onClick={() => synthesis.speak(item.sentenceDe)}>
+            <span aria-hidden="true">🔊</span> Listen
+          </button>
+        )}
         <div className="button-row">
           <button className="secondary-button" onClick={resetAttempt}>
             Try again
@@ -129,6 +136,11 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
         <>
           <p className="sentence-de">{item.sentenceDe}</p>
           <p className="sentence-en">{item.sentenceEn}</p>
+          {synthesis.supported && (
+            <button className="listen-button" onClick={() => synthesis.speak(item.sentenceDe)}>
+              <span aria-hidden="true">🔊</span> Listen
+            </button>
+          )}
         </>
       )}
 

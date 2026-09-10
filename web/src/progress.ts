@@ -31,3 +31,11 @@ export function saveProgress(state: StoredProgress): void {
     // progress won't survive a reload this time, not a broken app.
   }
 }
+
+export function clearProgress(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // If storage is inaccessible there was never anything to clear.
+  }
+}

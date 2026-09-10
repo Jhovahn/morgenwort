@@ -5,9 +5,11 @@ interface HomeProps {
   session: SessionView;
   onStart: () => void;
   onRepeat: (lesson: CompletedLesson) => void;
+  onViewStats: () => void;
+  onReset: () => void;
 }
 
-export function Home({ session, onStart, onRepeat }: HomeProps) {
+export function Home({ session, onStart, onRepeat, onViewStats, onReset }: HomeProps) {
   const reviewCount = session.reviewQueue.length;
   const newCount = session.newWords.length;
   const focusRef = useAutoFocus<HTMLElement>();
@@ -22,6 +24,9 @@ export function Home({ session, onStart, onRepeat }: HomeProps) {
           ? `, plus ${reviewCount} due for review.`
           : " — no reviews due today."}
       </p>
+      <button className="text-link-button" onClick={onViewStats}>
+        View progress →
+      </button>
 
       <div className="card queue-card">
         {session.newWords.map((item) => (
@@ -99,6 +104,10 @@ export function Home({ session, onStart, onRepeat }: HomeProps) {
           ))}
         </div>
       )}
+
+      <button className="text-link-button text-link-button--muted" onClick={onReset}>
+        Reset progress
+      </button>
     </main>
   );
 }

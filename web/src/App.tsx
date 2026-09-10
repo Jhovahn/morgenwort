@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { fetchSession } from "./api";
-import { loadProgress, saveProgress, type StoredProgress } from "./progress";
+import { clearProgress, loadProgress, saveProgress, type StoredProgress } from "./progress";
 import { useAutoFocus } from "./useAutoFocus";
 import { Done } from "./screens/Done";
 import { Home } from "./screens/Home";
 import { Speak } from "./screens/Speak";
+import { Stats } from "./screens/Stats";
 import type { AttemptResult, CompletedLesson, QueueItem, SessionView } from "./types";
 
-type Screen = "loading" | "home" | "speak" | "done" | "error";
+type Screen = "loading" | "home" | "speak" | "done" | "stats" | "error";
 
 interface CompletedAttempt {
   word: string;
@@ -61,16 +62,27 @@ function App() {
     return () => clearTimeout(timer);
   }, [screen]);
 
+  // Shared by the initial mount, "back to overview," and "reset progress" --
+  // all three are "fetch a session for whatever progress currently applies
+  // and land on Home," differing only in what progress (if any) that is.
+  async function loadInto(saved: StoredProgress | undefined) {
+    setSlowLoad(false);
+    setScreen("loading");
+    try {
+      const data = await fetchSession(saved);
+      const next = { currentDay: data.currentDay, progress: data.progress };
+      saveProgress(next);
+      setSaved(next);
+      setSession(data);
+      setScreen("home");
+    } catch {
+      setScreen("error");
+    }
+  }
+
   useEffect(() => {
-    fetchSession(loadProgress() ?? undefined)
-      .then((data) => {
-        const next = { currentDay: data.currentDay, progress: data.progress };
-        saveProgress(next);
-        setSaved(next);
-        setSession(data);
-        setScreen("home");
-      })
-      .catch(() => setScreen("error"));
+    loadInto(loadProgress() ?? undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function todaysQueue(): QueueItem[] {
@@ -128,19 +140,15 @@ function App() {
     }
   }
 
-  async function backToHome() {
-    setSlowLoad(false);
-    setScreen("loading");
-    try {
-      const data = await fetchSession(saved ?? undefined);
-      const next = { currentDay: data.currentDay, progress: data.progress };
-      saveProgress(next);
-      setSaved(next);
-      setSession(data);
-      setScreen("home");
-    } catch {
-      setScreen("error");
-    }
+  function backToHome() {
+    loadInto(saved ?? undefined);
+  }
+
+  function resetProgress() {
+    if (!window.confirm("Reset all progress? This can't be undone.")) return;
+    clearProgress();
+    setSaved(null);
+    loadInto(undefined);
   }
 
   if (screen === "loading") {
@@ -152,7 +160,19 @@ function App() {
   }
 
   if (screen === "home") {
-    return <Home session={session} onStart={startSession} onRepeat={repeatDay} />;
+    return (
+      <Home
+        session={session}
+        onStart={startSession}
+        onRepeat={repeatDay}
+        onViewStats={() => setScreen("stats")}
+        onReset={resetProgress}
+      />
+    );
+  }
+
+  if (screen === "stats") {
+    return <Stats session={session} onBack={() => setScreen("home")} />;
   }
 
   const currentItem = queue[index];
