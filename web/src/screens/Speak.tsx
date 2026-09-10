@@ -82,6 +82,16 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recognition.state]);
 
+  const listenIcon = synthesis.supported && (
+    <button
+      className="inline-listen-button"
+      onClick={() => synthesis.speak(item.sentenceDe)}
+      aria-label="Listen to the German sentence"
+    >
+      <span aria-hidden="true">🔊</span>
+    </button>
+  );
+
   if (result) {
     return (
       <main className="screen screen-speak">
@@ -99,13 +109,9 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
               {m.word}{" "}
             </span>
           ))}
+          {listenIcon}
         </p>
         <p className="tip">{result.tip}</p>
-        {synthesis.supported && (
-          <button className="listen-button" onClick={() => synthesis.speak(item.sentenceDe)}>
-            <span aria-hidden="true">🔊</span> Listen
-          </button>
-        )}
         <div className="button-row">
           <button className="secondary-button" onClick={resetAttempt}>
             Try again
@@ -117,16 +123,6 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
       </main>
     );
   }
-
-  const micButton = (
-    <button
-      className={`mic-button ${recognition.state === "listening" ? "mic-button--active" : ""}`}
-      onClick={recognition.start}
-      disabled={recognition.state === "listening" || scoring}
-    >
-      {recognition.state === "listening" ? "Listening…" : "Tap to speak"}
-    </button>
-  );
 
   return (
     <main className="screen screen-speak">
@@ -144,23 +140,22 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
         </>
       ) : (
         <>
-          <p className="sentence-de">{item.sentenceDe}</p>
+          <p className="sentence-de">
+            {item.sentenceDe} {listenIcon}
+          </p>
           <p className="sentence-en">{item.sentenceEn}</p>
         </>
       )}
 
       {recognition.supported ? (
         <>
-          {mode === "repeat" && synthesis.supported ? (
-            <div className="listen-row">
-              <button className="listen-button" onClick={() => synthesis.speak(item.sentenceDe)}>
-                <span aria-hidden="true">🔊</span> Listen
-              </button>
-              {micButton}
-            </div>
-          ) : (
-            micButton
-          )}
+          <button
+            className={`mic-button ${recognition.state === "listening" ? "mic-button--active" : ""}`}
+            onClick={recognition.start}
+            disabled={recognition.state === "listening" || scoring}
+          >
+            {recognition.state === "listening" ? "Listening…" : "Tap to speak"}
+          </button>
           {recognition.state === "listening" && (
             <p className="live-transcript" role="status" aria-live="polite">
               {recognition.transcript || "…"}

@@ -190,37 +190,26 @@
   background: var(--color-accent-100);
 }
 
-.listen-button {
+.inline-listen-button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 13px;
-  padding: 8px 12px;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-left: var(--space-2);
+  padding: 0;
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-accent);
+  font-size: 13px;
+  line-height: 1;
   cursor: pointer;
-  margin-bottom: var(--space-4);
+  vertical-align: middle;
 }
 
-.listen-button:hover {
+.inline-listen-button:hover {
   background: var(--color-accent-100);
-}
-
-.listen-row {
-  display: flex;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
-}
-
-.listen-row .listen-button,
-.listen-row .mic-button {
-  flex: 1;
-  margin-bottom: 0;
-  justify-content: center;
 }
 
 .streak {
