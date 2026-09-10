@@ -274,7 +274,6 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  margin-left: var(--space-2);
   padding: 0;
   border: none;
   background: transparent;
@@ -282,7 +281,7 @@
   font-size: 13px;
   line-height: 1;
   cursor: pointer;
-  vertical-align: middle;
+  vertical-align: text-bottom;
 }
 
 .streak {
