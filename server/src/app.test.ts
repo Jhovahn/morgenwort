@@ -51,7 +51,7 @@ describe("API routes", () => {
     it("scores a correct attempt and returns updated strength/dueAt", async () => {
       const res = await request(app)
         .post("/api/attempt")
-        .send({ id: "aufstehen", heardText: "ich stehe um sieben uhr auf", currentStrength: 1 });
+        .send({ id: "aufstehen", heardText: "stehst du auch um sieben uhr auf", currentStrength: 1 });
       expect(res.status).toBe(200);
       expect(res.body.perfect).toBe(true);
       expect(res.body.score).toBe(100);

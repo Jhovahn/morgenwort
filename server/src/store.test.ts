@@ -115,7 +115,7 @@ describe("recordAttempt", () => {
   });
 
   it("computes strength and dueAt from the caller-supplied currentStrength, without any hidden state", async () => {
-    const result = await recordAttempt("aufstehen", "ich stehe um sieben uhr auf", 2, NOW);
+    const result = await recordAttempt("aufstehen", "stehst du auch um sieben uhr auf", 2, NOW);
     expect(result).not.toBeNull();
     expect(result!.perfect).toBe(true);
     expect(result!.strength).toBe(3); // nextStrength(2, 100) -> 3
