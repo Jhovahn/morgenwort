@@ -3,13 +3,13 @@ import { useAutoFocus } from "../useAutoFocus";
 
 interface HomeProps {
   session: SessionView;
+  streak: number;
   onStart: () => void;
   onRepeat: (lesson: CompletedLesson) => void;
-  onViewStats: () => void;
   onReset: () => void;
 }
 
-export function Home({ session, onStart, onRepeat, onViewStats, onReset }: HomeProps) {
+export function Home({ session, streak, onStart, onRepeat, onReset }: HomeProps) {
   const reviewCount = session.reviewQueue.length;
   const newCount = session.newWords.length;
   const focusRef = useAutoFocus<HTMLElement>();
@@ -24,9 +24,15 @@ export function Home({ session, onStart, onRepeat, onViewStats, onReset }: HomeP
           ? `, plus ${reviewCount} due for review.`
           : " — no reviews due today."}
       </p>
-      <button className="text-link-button" onClick={onViewStats}>
-        View progress →
-      </button>
+      <p className={streak > 0 ? "streak" : "streak streak--empty"}>
+        {streak > 0 ? (
+          <>
+            {streak}-day streak <span aria-hidden="true">🔥</span>
+          </>
+        ) : (
+          "No streak yet — finish today's lesson to start one"
+        )}
+      </p>
 
       <div className="card queue-card">
         {session.newWords.map((item) => (

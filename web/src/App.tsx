@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { fetchSession } from "./api";
-import { clearProgress, loadProgress, saveProgress, type StoredProgress } from "./progress";
+import { bumpStreak, clearProgress, loadProgress, saveProgress, type StoredProgress } from "./progress";
 import { useAutoFocus } from "./useAutoFocus";
 import { Done } from "./screens/Done";
 import { Home } from "./screens/Home";
 import { Speak } from "./screens/Speak";
-import { Stats } from "./screens/Stats";
 import type { AttemptResult, CompletedLesson, QueueItem, SessionView } from "./types";
 
-type Screen = "loading" | "home" | "speak" | "done" | "stats" | "error";
+type Screen = "loading" | "home" | "speak" | "done" | "error";
 
 interface CompletedAttempt {
   word: string;
@@ -70,7 +69,12 @@ function App() {
     setScreen("loading");
     try {
       const data = await fetchSession(saved);
-      const next = { currentDay: data.currentDay, progress: data.progress };
+      const next: StoredProgress = {
+        currentDay: data.currentDay,
+        progress: data.progress,
+        streak: saved?.streak ?? 0,
+        lastCompletionDate: saved?.lastCompletionDate ?? null,
+      };
       saveProgress(next);
       setSaved(next);
       setSession(data);
@@ -124,9 +128,12 @@ function App() {
     // if the tab closes right after the last word.
     setSaved((prev) => {
       if (!prev) return prev;
+      const streakUpdate = isLastItem ? bumpStreak(prev.streak, prev.lastCompletionDate) : null;
       const next: StoredProgress = {
         currentDay: isLastItem ? prev.currentDay + 1 : prev.currentDay,
         progress: { ...prev.progress, [currentWord.id]: { strength: result.strength, dueAt: result.dueAt } },
+        streak: streakUpdate?.streak ?? prev.streak,
+        lastCompletionDate: streakUpdate?.lastCompletionDate ?? prev.lastCompletionDate,
       };
       saveProgress(next);
       return next;
@@ -163,16 +170,12 @@ function App() {
     return (
       <Home
         session={session}
+        streak={saved?.streak ?? 0}
         onStart={startSession}
         onRepeat={repeatDay}
-        onViewStats={() => setScreen("stats")}
         onReset={resetProgress}
       />
     );
-  }
-
-  if (screen === "stats") {
-    return <Stats session={session} onBack={() => setScreen("home")} />;
   }
 
   const currentItem = queue[index];
