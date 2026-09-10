@@ -5,18 +5,31 @@ import { useAutoFocus } from "../useAutoFocus";
 interface HomeProps {
   session: SessionView;
   streak: number;
+  isFirstVisit: boolean;
   onStart: () => void;
   onRepeat: (lesson: CompletedLesson) => void;
   onReset: () => void;
 }
 
-export function Home({ session, streak, onStart, onRepeat, onReset }: HomeProps) {
+export function Home({ session, streak, isFirstVisit, onStart, onRepeat, onReset }: HomeProps) {
   const reviewCount = session.reviewQueue.length;
   const newCount = session.newWords.length;
   const focusRef = useAutoFocus<HTMLElement>();
 
   return (
     <main className="screen screen-home" ref={focusRef} tabIndex={-1}>
+      <details className="brand-accordion" open={isFirstVisit}>
+        <summary>Morgenwort</summary>
+        <p>
+          Morgenwort teaches you German through short daily lessons — hear or read a sentence, say it out loud,
+          and get instant feedback on your pronunciation.
+        </p>
+        <p>
+          New words arrive each day, and words you&rsquo;ve learned come back later for review, translated from
+          English instead of read aloud. Finish a lesson to keep your streak going.
+        </p>
+      </details>
+
       <p className="eyebrow">{getGreeting()}</p>
       <h1>Today&rsquo;s lesson: {session.lessonTitle}</h1>
       <p className="lede">

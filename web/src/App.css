@@ -9,6 +9,56 @@
   flex-direction: column;
 }
 
+.brand-accordion {
+  border-bottom: 1px solid var(--color-divider);
+  margin-bottom: var(--space-4);
+}
+
+.brand-accordion summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.brand-accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.brand-accordion summary::after {
+  content: "⌄";
+  flex: none;
+  font-size: 18px;
+  color: var(--color-accent);
+  transition: transform 0.15s ease;
+}
+
+.brand-accordion[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.brand-accordion p {
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: color-mix(in srgb, var(--color-text) 65%, transparent);
+  margin: 0 0 var(--space-2);
+}
+
+.brand-accordion p:last-child {
+  margin-bottom: var(--space-4);
+}
+
 .eyebrow {
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);

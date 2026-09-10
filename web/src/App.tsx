@@ -54,6 +54,11 @@ function App() {
   const [index, setIndex] = useState(0);
   const [completed, setCompleted] = useState<CompletedAttempt[]>([]);
   const [slowLoad, setSlowLoad] = useState(false);
+  // Snapshot taken once, before the mount effect below ever writes to
+  // localStorage -- loadInto() saves progress as soon as the first session
+  // loads, so re-deriving "is this a first visit" from saved state after
+  // that point would always read false, even on a brand-new visitor.
+  const [isFirstVisit] = useState(() => loadProgress() === null);
 
   useEffect(() => {
     if (screen !== "loading") return;
@@ -171,6 +176,7 @@ function App() {
       <Home
         session={session}
         streak={saved?.streak ?? 0}
+        isFirstVisit={isFirstVisit}
         onStart={startSession}
         onRepeat={repeatDay}
         onReset={resetProgress}
