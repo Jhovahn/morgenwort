@@ -5,10 +5,10 @@ words plus any words due for spaced-repetition review, has you speak each
 example sentence aloud, and scores your attempt against what the browser's
 speech recognizer actually heard.
 
-**Live:** https://morgenwort-jhovahn1.vercel.app (frontend) · API at
-https://morgenwort-server.onrender.com. The API is on Render's free tier,
-so the first request after idling can take ~30-60s to wake it — that's
-Render cold-start behavior, not app latency.
+**Live:** https://morgenwort.com (also at https://morgenwort-jhovahn1.vercel.app)
+· API at https://morgenwort-server.onrender.com. The API is on Render's free
+tier, so the first request after idling can take ~30-60s to wake it —
+that's Render cold-start behavior, not app latency.
 
 ![Morgenwort home screen: today's lesson, five new words plus one review, and a start-session button](docs/screenshot-home.png)
 
