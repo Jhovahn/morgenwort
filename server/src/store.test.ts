@@ -69,10 +69,29 @@ describe("getSession", () => {
     expect(session.upcomingLessons.map((l) => l.day)).not.toContain(3);
   });
 
+  it("has no completedLessons on day 1", () => {
+    const session = getSession(1, {}, NOW);
+    expect(session.completedLessons).toHaveLength(0);
+  });
+
+  it("lists finished days as completedLessons, most recent first, with full word lists", () => {
+    const day1 = LESSON_CALENDAR.find((l) => l.day === 1)!;
+    const day2 = LESSON_CALENDAR.find((l) => l.day === 2)!;
+    const wordId = day1.wordIds[0];
+    const progress: ProgressMap = { [wordId]: { strength: 4, dueAt: NOW.toISOString() } };
+
+    const session = getSession(3, progress, NOW);
+    expect(session.completedLessons.map((l) => l.day)).toEqual([2, 1]);
+    expect(session.completedLessons[1].words.map((w) => w.id)).toEqual(day1.wordIds);
+    expect(session.completedLessons[1].words[0].strength).toBe(4); // carries supplied progress
+    expect(session.completedLessons[0].words.map((w) => w.id)).toEqual(day2.wordIds);
+  });
+
   it("falls back gracefully past the end of the written calendar", () => {
     const session = getSession(LESSON_CALENDAR.length + 1, {}, NOW);
     expect(session.newWords).toHaveLength(0);
     expect(session.upcomingLessons).toHaveLength(0);
+    expect(session.completedLessons).toHaveLength(LESSON_CALENDAR.length);
     expect(session.lessonTitle).not.toBe("");
   });
 

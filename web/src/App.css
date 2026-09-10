@@ -131,6 +131,45 @@
   margin-left: var(--space-2);
 }
 
+.completed-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 14px;
+}
+
+.completed-row:last-child {
+  border-bottom: none;
+}
+
+.completed-row .calendar-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.repeat-button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.repeat-button:hover {
+  background: var(--color-accent-100);
+}
+
 .primary-button {
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);

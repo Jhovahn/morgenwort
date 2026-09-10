@@ -42,6 +42,17 @@ interface WordSummary {
   strength: number;
 }
 
+function wordSummary(id: string, progress: ProgressMap): WordSummary {
+  const item = VOCAB_BY_ID.get(id)!;
+  return {
+    id: item.id,
+    word: item.word,
+    sentenceDe: item.sentenceDe,
+    sentenceEn: item.sentenceEn,
+    strength: progress[id]?.strength ?? 1,
+  };
+}
+
 export interface SessionView {
   currentDay: number;
   lessonTitle: string;
@@ -49,6 +60,10 @@ export interface SessionView {
   reviewQueue: (WordSummary & { dueAt: string })[];
   upcomingCount: number;
   upcomingLessons: { day: number; title: string; icon: string; featuredWord: string }[];
+  /** Days already finished, most recent first, each with its full word
+   * list (not just a title) so "repeat this day" can build a practice
+   * queue client-side with no extra round-trip. */
+  completedLessons: { day: number; title: string; icon: string; words: WordSummary[] }[];
   /** Full progress snapshot, including entries the current view doesn't
    * otherwise surface (e.g. reviews not yet due) -- the client persists
    * this verbatim to localStorage after every request rather than trying
@@ -64,32 +79,15 @@ export function getSession(currentDay: number, progress: ProgressMap, now = new 
   const upcomingReviewIds: string[] = [];
   for (const [id, entry] of Object.entries(progress)) {
     if (lessonWordIds.has(id)) continue;
-    const item = VOCAB_BY_ID.get(id);
-    if (!item) continue; // stale/unknown id in client-supplied progress -- ignore rather than throw
+    if (!VOCAB_BY_ID.has(id)) continue; // stale/unknown id in client-supplied progress -- ignore rather than throw
     if (isDue(new Date(entry.dueAt), now)) {
-      dueReviews.push({
-        id: item.id,
-        word: item.word,
-        sentenceDe: item.sentenceDe,
-        sentenceEn: item.sentenceEn,
-        strength: entry.strength,
-        dueAt: entry.dueAt,
-      });
+      dueReviews.push({ ...wordSummary(id, progress), dueAt: entry.dueAt });
     } else {
       upcomingReviewIds.push(id);
     }
   }
 
-  const newWords: WordSummary[] = (lesson?.wordIds ?? []).map((id) => {
-    const item = VOCAB_BY_ID.get(id)!;
-    return {
-      id: item.id,
-      word: item.word,
-      sentenceDe: item.sentenceDe,
-      sentenceEn: item.sentenceEn,
-      strength: progress[id]?.strength ?? 1,
-    };
-  });
+  const newWords = (lesson?.wordIds ?? []).map((id) => wordSummary(id, progress));
 
   return {
     currentDay,
@@ -105,6 +103,14 @@ export function getSession(currentDay: number, progress: ProgressMap, now = new 
       icon: l.icon,
       featuredWord: VOCAB_BY_ID.get(l.wordIds[0])?.word ?? "",
     })),
+    completedLessons: LESSON_CALENDAR.filter((l) => l.day < currentDay)
+      .sort((a, b) => b.day - a.day)
+      .map((l) => ({
+        day: l.day,
+        title: l.title,
+        icon: l.icon,
+        words: l.wordIds.map((id) => wordSummary(id, progress)),
+      })),
     progress,
   };
 }

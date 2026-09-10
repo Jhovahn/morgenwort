@@ -5,7 +5,7 @@ import { loadProgress, saveProgress, type StoredProgress } from "./progress";
 import { Done } from "./screens/Done";
 import { Home } from "./screens/Home";
 import { Speak } from "./screens/Speak";
-import type { AttemptResult, QueueItem, SessionView } from "./types";
+import type { AttemptResult, CompletedLesson, QueueItem, SessionView } from "./types";
 
 type Screen = "loading" | "home" | "speak" | "done" | "error";
 
@@ -47,12 +47,29 @@ function App() {
       .catch(() => setScreen("error"));
   }, []);
 
-  function startSession() {
-    if (!session) return;
-    setQueue([
+  function todaysQueue(): QueueItem[] {
+    if (!session) return [];
+    return [
       ...session.newWords.map((w) => ({ ...w, mode: "repeat" as const })),
       ...session.reviewQueue.map((w) => ({ ...w, mode: "translate" as const })),
-    ]);
+    ];
+  }
+
+  function startSession() {
+    setQueue(todaysQueue());
+    setIndex(0);
+    setCompleted([]);
+    setScreen("speak");
+  }
+
+  // A repeated day's words go in front of today's normal queue rather than
+  // replacing it -- "up next," not a separate detour -- so finishing the
+  // combined queue still represents finishing today's lesson, and the
+  // existing day-advancement logic in handleAttemptResult applies
+  // unchanged with no special-casing for "this was a repeat."
+  function repeatDay(lesson: CompletedLesson) {
+    const repeatItems: QueueItem[] = lesson.words.map((w) => ({ ...w, mode: "translate" as const }));
+    setQueue([...repeatItems, ...todaysQueue()]);
     setIndex(0);
     setCompleted([]);
     setScreen("speak");
@@ -123,7 +140,7 @@ function App() {
   }
 
   if (screen === "home") {
-    return <Home session={session} onStart={startSession} />;
+    return <Home session={session} onStart={startSession} onRepeat={repeatDay} />;
   }
 
   const currentItem = queue[index];

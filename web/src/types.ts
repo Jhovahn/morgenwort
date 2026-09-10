@@ -13,6 +13,13 @@ export interface UpcomingLesson {
   featuredWord: string;
 }
 
+export interface CompletedLesson {
+  day: number;
+  title: string;
+  icon: string;
+  words: WordSummary[];
+}
+
 export interface ProgressEntry {
   strength: number;
   dueAt: string;
@@ -27,6 +34,7 @@ export interface SessionView {
   reviewQueue: (WordSummary & { dueAt: string })[];
   upcomingCount: number;
   upcomingLessons: UpcomingLesson[];
+  completedLessons: CompletedLesson[];
   progress: ProgressMap;
 }
 

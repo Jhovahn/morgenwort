@@ -1,11 +1,12 @@
-import type { SessionView } from "../types";
+import type { CompletedLesson, SessionView } from "../types";
 
 interface HomeProps {
   session: SessionView;
   onStart: () => void;
+  onRepeat: (lesson: CompletedLesson) => void;
 }
 
-export function Home({ session, onStart }: HomeProps) {
+export function Home({ session, onStart, onRepeat }: HomeProps) {
   const reviewCount = session.reviewQueue.length;
   const newCount = session.newWords.length;
 
@@ -46,6 +47,32 @@ export function Home({ session, onStart }: HomeProps) {
       <button className="primary-button" onClick={onStart}>
         Start today&rsquo;s session
       </button>
+
+      {session.completedLessons.length > 0 && (
+        <div className="card completed-card">
+          <p className="card-heading">Completed</p>
+          {session.completedLessons.map((lesson) => (
+            <div className="completed-row" key={lesson.day}>
+              <div className="calendar-heading">
+                <span className="calendar-day">Day {lesson.day}</span>
+                <span className="calendar-title">
+                  {lesson.title}
+                  <span className="calendar-icon" aria-hidden="true">
+                    {lesson.icon}
+                  </span>
+                </span>
+              </div>
+              <button
+                className="repeat-button"
+                onClick={() => onRepeat(lesson)}
+                aria-label={`Repeat day ${lesson.day}: ${lesson.title}`}
+              >
+                <span aria-hidden="true">↻</span> Repeat
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {session.upcomingLessons.length > 0 && (
         <div className="card calendar-card">
