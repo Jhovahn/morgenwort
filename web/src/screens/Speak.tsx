@@ -3,6 +3,27 @@ import { submitAttempt } from "../api";
 import type { AttemptResult, PracticeMode, WordSummary } from "../types";
 import { useSpeechRecognition } from "../useSpeechRecognition";
 
+// Web Speech API error reasons that specifically mean "the browser refused
+// to give this page mic access" -- distinct from no-speech-detected, which
+// means access was granted but nothing was heard. Conflating the two under
+// one generic message sends a permission problem down a "try speaking
+// again" dead end that can never succeed until the user changes a browser
+// setting.
+const PERMISSION_ERRORS = new Set(["not-allowed", "service-not-allowed"]);
+
+function micErrorMessage(reason: string | null): string {
+  if (reason && PERMISSION_ERRORS.has(reason)) {
+    return "Microphone access was denied. Check your browser's site settings to allow the microphone for this page, then try again.";
+  }
+  if (reason === "audio-capture") {
+    return "No microphone was found. Check that one is connected, then try again.";
+  }
+  if (reason === "no-speech") {
+    return "Didn't catch that — tap to try again.";
+  }
+  return "Something went wrong with the microphone — tap to try again.";
+}
+
 interface SpeakProps {
   item: WordSummary;
   mode: PracticeMode;
@@ -126,7 +147,7 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
             </p>
           )}
           {recognition.state === "error" && (
-            <p className="error-text">Didn&rsquo;t catch that — tap to try again.</p>
+            <p className="error-text">{micErrorMessage(recognition.errorReason)}</p>
           )}
         </>
       ) : (

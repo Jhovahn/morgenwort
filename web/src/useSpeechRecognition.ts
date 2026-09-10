@@ -5,6 +5,7 @@ export type RecognitionState = "idle" | "listening" | "done" | "error";
 export function useSpeechRecognition() {
   const [state, setState] = useState<RecognitionState>("idle");
   const [transcript, setTranscript] = useState("");
+  const [errorReason, setErrorReason] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   const SpeechRecognitionCtor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
@@ -29,11 +30,15 @@ export function useSpeechRecognition() {
       setTranscript(combined.trim());
       if (hasFinal) setState("done");
     };
-    recognition.onerror = () => setState("error");
+    recognition.onerror = (event) => {
+      setErrorReason(event.error);
+      setState("error");
+    };
     recognition.onend = () => setState((current) => (current === "listening" ? "done" : current));
 
     recognitionRef.current = recognition;
     setTranscript("");
+    setErrorReason(null);
     setState("listening");
     recognition.start();
   }, [SpeechRecognitionCtor]);
@@ -44,8 +49,9 @@ export function useSpeechRecognition() {
 
   const reset = useCallback(() => {
     setTranscript("");
+    setErrorReason(null);
     setState("idle");
   }, []);
 
-  return { supported, state, transcript, start, stop, reset, setTranscript };
+  return { supported, state, transcript, errorReason, start, stop, reset, setTranscript };
 }
