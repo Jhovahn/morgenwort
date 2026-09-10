@@ -31,9 +31,10 @@ interface SpeakProps {
   position: number;
   total: number;
   onResult: (result: AttemptResult, heardText: string) => void;
+  onBack: () => void;
 }
 
-export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
+export function Speak({ item, mode, position, total, onResult, onBack }: SpeakProps) {
   const recognition = useSpeechRecognition();
   const synthesis = useSpeechSynthesis();
   const [manualText, setManualText] = useState("");
@@ -95,7 +96,12 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
   if (result) {
     return (
       <main className="screen screen-speak">
-        <p className="eyebrow">{result.perfect ? "Nailed it" : `${result.score}% match`}</p>
+        <div className="speak-topbar">
+          <p className="eyebrow">{result.perfect ? "Nailed it" : `${result.score}% match`}</p>
+          <button className="back-link" onClick={onBack}>
+            ‹ Overview
+          </button>
+        </div>
         <h1 ref={headingRef} tabIndex={-1}>
           {item.word}
         </h1>
@@ -126,10 +132,15 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
 
   return (
     <main className="screen screen-speak">
-      <p className="eyebrow">
-        {position} of {total}
-        {mode === "translate" ? " · Translate" : ""}
-      </p>
+      <div className="speak-topbar">
+        <p className="eyebrow">
+          {position} of {total}
+          {mode === "translate" ? " · Translate" : ""}
+        </p>
+        <button className="back-link" onClick={onBack}>
+          ‹ Overview
+        </button>
+      </div>
       <h1 ref={headingRef} tabIndex={-1}>
         {item.word}
       </h1>

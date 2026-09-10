@@ -194,6 +194,7 @@ function App() {
         position={index + 1}
         total={queue.length}
         onResult={(result) => handleAttemptResult(result, currentItem)}
+        onBack={backToHome}
       />
     );
   }
