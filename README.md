@@ -130,5 +130,8 @@ computation) has its own suite now that it's stateless, pure functions of
 caller-supplied progress rather than a thin wrapper around mutable
 in-memory state — the day-boundary and past-the-calendar edge cases are
 exactly the kind of thing that's easy to get subtly wrong and hard to
-notice by eye. The Express route handlers and React components stay
+notice by eye. `app.test.ts` hits the actual Express app over HTTP via
+`supertest` (routing, JSON parsing, status codes, input validation) —
+`index.ts` only calls `app.listen`, so the app itself (exported from
+`app.ts`) is testable without a real socket. React components stay
 untested; they're thin enough that bugs there would be visually obvious.
