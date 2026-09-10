@@ -1,3 +1,4 @@
+import { getGreeting } from "../greeting";
 import type { CompletedLesson, SessionView } from "../types";
 import { useAutoFocus } from "../useAutoFocus";
 
@@ -16,7 +17,7 @@ export function Home({ session, streak, onStart, onRepeat, onReset }: HomeProps)
 
   return (
     <main className="screen screen-home" ref={focusRef} tabIndex={-1}>
-      <p className="eyebrow">Good morning</p>
+      <p className="eyebrow">{getGreeting()}</p>
       <h1>Today&rsquo;s lesson: {session.lessonTitle}</h1>
       <p className="lede">
         {newCount} new word{newCount === 1 ? "" : "s"}
