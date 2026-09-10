@@ -210,6 +210,19 @@
   background: var(--color-accent-100);
 }
 
+.listen-row {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.listen-row .listen-button,
+.listen-row .mic-button {
+  flex: 1;
+  margin-bottom: 0;
+  justify-content: center;
+}
+
 .streak {
   font-family: var(--font-heading);
   font-weight: 600;
