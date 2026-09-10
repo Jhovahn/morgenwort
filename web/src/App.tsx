@@ -13,6 +13,7 @@ type Screen = "loading" | "home" | "speak" | "done" | "error";
 interface CompletedAttempt {
   word: string;
   score: number;
+  dueAt: string;
 }
 
 // Render's free tier sleeps the API after inactivity; the first request
@@ -101,7 +102,7 @@ function App() {
   }
 
   function handleAttemptResult(result: AttemptResult, currentWord: QueueItem) {
-    setCompleted((prev) => [...prev, { word: currentWord.word, score: result.score }]);
+    setCompleted((prev) => [...prev, { word: currentWord.word, score: result.score, dueAt: result.dueAt }]);
 
     const nextIndex = index + 1;
     const isLastItem = nextIndex >= queue.length;
