@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { fetchSession } from "./api";
 import { loadProgress, saveProgress, type StoredProgress } from "./progress";
+import { useAutoFocus } from "./useAutoFocus";
 import { Done } from "./screens/Done";
 import { Home } from "./screens/Home";
 import { Speak } from "./screens/Speak";
@@ -19,6 +20,30 @@ interface CompletedAttempt {
 // almost certainly a cold start, not a hang, so the message should say so
 // rather than leaving a bare "Loading…" that looks broken.
 const COLD_START_HINT_MS = 4000;
+
+function LoadingScreen({ slowLoad }: { slowLoad: boolean }) {
+  const ref = useAutoFocus<HTMLElement>();
+  return (
+    <main className="screen" ref={ref} tabIndex={-1}>
+      <p className="eyebrow">Loading…</p>
+      {slowLoad && (
+        <p className="lede">
+          Waking up the server — this can take up to a minute on the first request after a while idle.
+        </p>
+      )}
+    </main>
+  );
+}
+
+function ErrorScreen() {
+  const ref = useAutoFocus<HTMLElement>();
+  return (
+    <main className="screen" ref={ref} tabIndex={-1}>
+      <h1>Couldn&rsquo;t load today&rsquo;s session</h1>
+      <p className="lede">Couldn&rsquo;t reach the API — check your connection and try refreshing.</p>
+    </main>
+  );
+}
 
 function App() {
   const [screen, setScreen] = useState<Screen>("loading");
@@ -118,25 +143,11 @@ function App() {
   }
 
   if (screen === "loading") {
-    return (
-      <div className="screen">
-        <p className="eyebrow">Loading…</p>
-        {slowLoad && (
-          <p className="lede">
-            Waking up the server — this can take up to a minute on the first request after a while idle.
-          </p>
-        )}
-      </div>
-    );
+    return <LoadingScreen slowLoad={slowLoad} />;
   }
 
   if (screen === "error" || !session) {
-    return (
-      <div className="screen">
-        <h1>Couldn&rsquo;t load today&rsquo;s session</h1>
-        <p className="lede">Couldn&rsquo;t reach the API — check your connection and try refreshing.</p>
-      </div>
-    );
+    return <ErrorScreen />;
   }
 
   if (screen === "home") {

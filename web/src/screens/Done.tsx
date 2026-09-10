@@ -1,3 +1,5 @@
+import { useAutoFocus } from "../useAutoFocus";
+
 interface DoneAttempt {
   word: string;
   score: number;
@@ -9,12 +11,13 @@ interface DoneProps {
 }
 
 export function Done({ attempts, onHome }: DoneProps) {
+  const focusRef = useAutoFocus<HTMLElement>();
   const average = attempts.length
     ? Math.round(attempts.reduce((sum, a) => sum + a.score, 0) / attempts.length)
     : 0;
 
   return (
-    <div className="screen screen-done">
+    <main className="screen screen-done" ref={focusRef} tabIndex={-1}>
       <p className="eyebrow">Session complete</p>
       <h1>{average}% average</h1>
       <div className="card">
@@ -28,6 +31,6 @@ export function Done({ attempts, onHome }: DoneProps) {
       <button className="primary-button" onClick={onHome}>
         Back to overview
       </button>
-    </div>
+    </main>
   );
 }

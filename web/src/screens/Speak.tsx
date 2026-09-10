@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { submitAttempt } from "../api";
 import type { AttemptResult, PracticeMode, WordSummary } from "../types";
 import { useSpeechRecognition } from "../useSpeechRecognition";
@@ -17,6 +17,15 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
   const [scoring, setScoring] = useState(false);
   const [result, setResult] = useState<AttemptResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Speak stays mounted across every item in the queue and across the
+  // prompt<->result toggle within one item (App.tsx never remounts it),
+  // so the mount-only useAutoFocus hook used elsewhere wouldn't refire
+  // here -- this refocuses explicitly on the transitions that matter.
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, [item.id, result]);
 
   function resetAttempt() {
     setResult(null);
@@ -52,12 +61,18 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
 
   if (result) {
     return (
-      <div className="screen screen-speak">
+      <main className="screen screen-speak">
         <p className="eyebrow">{result.perfect ? "Nailed it" : `${result.score}% match`}</p>
-        <h1>{item.word}</h1>
+        <h1 ref={headingRef} tabIndex={-1}>
+          {item.word}
+        </h1>
         <p className="sentence-de sentence-de--matched">
           {result.matched.map((m, i) => (
-            <span key={i} className={m.correct ? "word-correct" : "word-incorrect"}>
+            <span
+              key={i}
+              className={m.correct ? "word-correct" : "word-incorrect"}
+              aria-label={`${m.word}, ${m.correct ? "correct" : "incorrect"}`}
+            >
               {m.word}{" "}
             </span>
           ))}
@@ -71,17 +86,19 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
             Next
           </button>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="screen screen-speak">
+    <main className="screen screen-speak">
       <p className="eyebrow">
         {position} of {total}
         {mode === "translate" ? " · Translate" : ""}
       </p>
-      <h1>{item.word}</h1>
+      <h1 ref={headingRef} tabIndex={-1}>
+        {item.word}
+      </h1>
       {mode === "translate" ? (
         <>
           <p className="lede">Say it in German.</p>
@@ -104,7 +121,9 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
             {recognition.state === "listening" ? "Listening…" : "Tap to speak"}
           </button>
           {recognition.state === "listening" && (
-            <p className="live-transcript">{recognition.transcript || "…"}</p>
+            <p className="live-transcript" role="status" aria-live="polite">
+              {recognition.transcript || "…"}
+            </p>
           )}
           {recognition.state === "error" && (
             <p className="error-text">Didn&rsquo;t catch that — tap to try again.</p>
@@ -132,6 +151,6 @@ export function Speak({ item, mode, position, total, onResult }: SpeakProps) {
 
       {scoring && <p className="scoring-note">Scoring…</p>}
       {error && <p className="error-text">{error}</p>}
-    </div>
+    </main>
   );
 }

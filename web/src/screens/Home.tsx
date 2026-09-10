@@ -1,4 +1,5 @@
 import type { CompletedLesson, SessionView } from "../types";
+import { useAutoFocus } from "../useAutoFocus";
 
 interface HomeProps {
   session: SessionView;
@@ -9,9 +10,10 @@ interface HomeProps {
 export function Home({ session, onStart, onRepeat }: HomeProps) {
   const reviewCount = session.reviewQueue.length;
   const newCount = session.newWords.length;
+  const focusRef = useAutoFocus<HTMLElement>();
 
   return (
-    <div className="screen screen-home">
+    <main className="screen screen-home" ref={focusRef} tabIndex={-1}>
       <p className="eyebrow">Good morning</p>
       <h1>Today&rsquo;s lesson: {session.lessonTitle}</h1>
       <p className="lede">
@@ -31,7 +33,11 @@ export function Home({ session, onStart, onRepeat }: HomeProps) {
         {session.reviewQueue.map((item) => (
           <div className="queue-row" key={item.id}>
             <span className="queue-word">{item.word}</span>
-            <span className="queue-strength" title={`strength ${item.strength}/5`}>
+            <span
+              className="queue-strength"
+              title={`strength ${item.strength}/5`}
+              aria-label={`strength ${item.strength} of 5`}
+            >
               {"●".repeat(item.strength)}
               {"○".repeat(5 - item.strength)}
             </span>
@@ -93,6 +99,6 @@ export function Home({ session, onStart, onRepeat }: HomeProps) {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }
