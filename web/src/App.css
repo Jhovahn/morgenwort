@@ -299,6 +299,15 @@
   color: color-mix(in srgb, var(--color-text) 55%, transparent);
 }
 
+.streak--at-risk {
+  color: color-mix(in srgb, var(--color-text) 65%, transparent);
+}
+
+.streak-flame--unlit {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
 .text-link-button {
   display: block;
   align-self: flex-start;

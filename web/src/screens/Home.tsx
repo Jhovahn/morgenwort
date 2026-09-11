@@ -5,13 +5,14 @@ import { useAutoFocus } from "../useAutoFocus";
 interface HomeProps {
   session: SessionView;
   streak: number;
+  completedToday: boolean;
   isFirstVisit: boolean;
   onStart: () => void;
   onRepeat: (lesson: CompletedLesson) => void;
   onReset: () => void;
 }
 
-export function Home({ session, streak, isFirstVisit, onStart, onRepeat, onReset }: HomeProps) {
+export function Home({ session, streak, completedToday, isFirstVisit, onStart, onRepeat, onReset }: HomeProps) {
   const reviewCount = session.reviewQueue.length;
   const newCount = session.newWords.length;
   const focusRef = useAutoFocus<HTMLElement>();
@@ -31,17 +32,25 @@ export function Home({ session, streak, isFirstVisit, onStart, onRepeat, onReset
       </details>
 
       <p className="eyebrow">{getGreeting()}</p>
-      <h1>Today&rsquo;s lesson: {session.lessonTitle}</h1>
+      <h1>{completedToday ? "Tomorrow" : "Today"}&rsquo;s lesson: {session.lessonTitle}</h1>
       <p className="lede">
         {newCount} new word{newCount === 1 ? "" : "s"}
         {reviewCount > 0
           ? `, plus ${reviewCount} due for review.`
           : " — no reviews due today."}
       </p>
-      <p className={streak > 0 ? "streak" : "streak streak--empty"}>
+      <p
+        className={
+          streak === 0 ? "streak streak--empty" : completedToday ? "streak" : "streak streak--at-risk"
+        }
+      >
         {streak > 0 ? (
           <>
-            {streak}-day streak <span aria-hidden="true">🔥</span>
+            {streak}-day streak{" "}
+            <span aria-hidden="true" className={completedToday ? "" : "streak-flame--unlit"}>
+              🔥
+            </span>
+            {!completedToday && " — do today's lesson to keep it going"}
           </>
         ) : (
           "No streak yet — finish today's lesson to start one"
@@ -76,7 +85,7 @@ export function Home({ session, streak, isFirstVisit, onStart, onRepeat, onReset
       </div>
 
       <button className="primary-button" onClick={onStart}>
-        Start today&rsquo;s session
+        {completedToday ? "Jump-start tomorrow’s lesson" : "Start today’s session"}
       </button>
 
       {session.completedLessons.length > 0 && (

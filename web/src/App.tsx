@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { fetchSession } from "./api";
-import { bumpStreak, clearProgress, loadProgress, saveProgress, type StoredProgress } from "./progress";
+import { bumpStreak, clearProgress, loadProgress, saveProgress, todayDateString, type StoredProgress } from "./progress";
 import { useAutoFocus } from "./useAutoFocus";
 import { Done } from "./screens/Done";
 import { Home } from "./screens/Home";
@@ -176,6 +176,7 @@ function App() {
       <Home
         session={session}
         streak={saved?.streak ?? 0}
+        completedToday={saved?.lastCompletionDate === todayDateString()}
         isFirstVisit={isFirstVisit}
         onStart={startSession}
         onRepeat={repeatDay}
